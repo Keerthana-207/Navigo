@@ -1,0 +1,194 @@
+.footer {
+    margin-top: 120px;
+    padding: 56px 40px 28px;
+    backdrop-filter: blur(18px);
+}
+
+/* ---------- Top ---------- */
+
+.footer-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 72px;
+    flex-wrap: wrap;
+}
+
+.footer-brand {
+    max-width: 360px;
+}
+
+.footer-logo {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--primary);
+    letter-spacing: -0.03em;
+}
+
+.footer-description {
+    margin-top: 16px;
+    font-size: 15px;
+    line-height: 1.8;
+    color: var(--on-surface-variant);
+}
+
+/* ---------- Social ---------- */
+
+.footer-socials {
+    display: flex;
+    gap: 14px;
+    margin-top: 28px;
+}
+
+.footer-social {
+    width: 42px;
+    height: 42px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 999px;
+
+    background: var(--surface-container);
+
+    color: var(--on-surface);
+
+    transition:
+        transform .25s ease,
+        background .25s ease,
+        color .25s ease,
+        box-shadow .25s ease;
+}
+
+.footer-social:hover {
+    background: var(--primary);
+    color: var(--on-primary);
+    transform: translateY(-4px);
+    box-shadow: 0 10px 22px rgba(0, 0, 0, .15);
+}
+
+/* ---------- Link Grid ---------- */
+
+.footer-links-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(150px, 1fr));
+    gap: 60px;
+}
+
+.footer-heading {
+    margin-bottom: 20px;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.footer-links {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.footer-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+
+    width: fit-content;
+
+    color: var(--on-surface-variant);
+
+    text-decoration: none;
+
+    transition:
+        color .25s ease,
+        transform .25s ease;
+}
+
+.footer-link:hover {
+    color: var(--primary);
+    transform: translateX(6px);
+}
+
+.footer-mail svg {
+    transition: transform .25s ease;
+}
+
+.footer-mail:hover svg {
+    transform: rotate(-10deg);
+}
+
+/* ---------- Bottom ---------- */
+
+.footer-bottom {
+    margin-top: 56px;
+    padding-top: 24px;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+
+    border-top: 1px solid var(--outline-variant);
+
+    color: var(--on-surface-variant);
+    font-size: 14px;
+}
+
+.footer-bottom p {
+    transition: color .25s ease;
+}
+
+.footer-bottom p:hover {
+    color: var(--primary);
+}
+
+/* ---------- Accessibility ---------- */
+
+.footer-link:focus-visible,
+.footer-social:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 4px;
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 992px) {
+
+    .footer {
+        padding: 48px 28px 24px;
+    }
+
+    .footer-top {
+        flex-direction: column;
+        gap: 48px;
+    }
+
+    .footer-links-grid {
+        width: 100%;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 36px;
+    }
+
+}
+
+@media (max-width: 640px) {
+
+    .footer {
+        padding: 40px 20px 20px;
+    }
+
+    .footer-links-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .footer-bottom {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .footer-logo {
+        font-size: 1.75rem;
+    }
+
+}

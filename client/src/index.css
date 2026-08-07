@@ -29,6 +29,8 @@
   --glass: rgba(248, 249, 255, 0.45);
   --shadow: rgba(0, 0, 0, 0.12);
 
+  --hero-overlay: rgba(255,255,255,.40);
+
   /* Surface Colors */
   --surface-bright: #f8f9ff;
   --surface-dim: #d9deeb;
@@ -166,6 +168,8 @@
   --glass: rgba(26, 38, 54, 0.45);
   --shadow: rgba(0, 0, 0, 0.45);
 
+  --hero-overlay: rgba(0,0,0,.45);
+
   /* Surface Colors */
   --surface-bright: #1f2b3b;
   --surface-dim: #101826;
@@ -241,6 +245,30 @@
   --logo-color:#eef0f8;
   --plan-shadow: 0 30px 60px -20px rgba(0,0,0,0.6);
   --divider: rgba(255,255,255,0.06);
+
+  /* Layout */
+
+  --container-width:1450px;
+  --section-padding-x:40px;
+  --section-padding-y:48px;
+
+  /* Footer */
+
+  --footer-padding-top:48px;
+  --footer-padding-bottom:28px;
+  --footer-margin-top:120px;
+
+  /* Animation */
+
+  --transition-fast:150ms;
+  --transition-normal:250ms;
+
+  /* Radius */
+
+  --radius-sm:10px;
+  --radius-md:14px;
+  --radius-lg:22px;
+  --radius-full:999px;
 }
 
 .inter {
