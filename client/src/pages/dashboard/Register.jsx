@@ -1,7 +1,30 @@
 import React, { useState } from 'react';
+import { useTheme } from '../../context/ThemeContext';
 
-export default function NavigoCreateAccount() {
-  const [isDark, setIsDark] = useState(true);
+function FormInput({type, value, onChange, id, name, placeholder, autoComplete}) {
+  return(
+    <input
+      type={type}
+      id={id}
+      name={name}
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      autoComplete={autoComplete}
+      className="w-full py-3.5 pl-10 pr-3.5 text-[14px] rounded-md outline-none border border-transparent transition-all duration-200 bg-[var(--surface-container-low)] text-[var(--on-surface)] placeholder-[var(--text-secondary)] focus:border-[var(--primary)] focus:ring-4 focus:ring-[#e8823f]/25"
+      style={{
+        paddingTop: "14px",
+        paddingBottom: "14px",
+        paddingLeft: "40px",
+        paddingRight: "14px",
+        boxShadow: '0 0 0 4px color-mix(in srgb, var(--primary) 25%, transparent)'
+      }}
+    />
+  )
+}
+
+function CreateAccount() {
+  const { theme, toggleTheme } = useTheme();
   const [showPassword, setShowPassword] = useState(false);
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
@@ -57,9 +80,9 @@ export default function NavigoCreateAccount() {
   };
 
   return (
-    <div className={isDark ? 'dark' : ''}>
+    <>
       {/* Background Wrapper */}
-      <div className="min-h-screen flex items-center justify-center p-5 md:p-10 font-sans transition-colors duration-400 bg-[#eceff5] dark:bg-[#060911] text-[#171b26] dark:text-[#f4f6fa] relative overflow-hidden">
+      <div className="min-h-screen flex items-center justify-center p-5 md:p-10 font-sans transition-colors duration-400 bg-[var(--background)] text-[var(--on-background)] relative overflow-hidden" style={{padding: '20px'}}>
         
         {/* Glow Effects */}
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_60%_45%_at_30%_15%,rgba(233,140,68,0.08),transparent)] dark:bg-[radial-gradient(ellipse_60%_45%_at_30%_20%,rgba(233,140,68,0.06),transparent)]" />
@@ -70,11 +93,30 @@ export default function NavigoCreateAccount() {
           {/* Theme Toggle Button */}
           <button
             type="button"
-            onClick={() => setIsDark(!isDark)}
+            onClick={toggleTheme}
             aria-label="Toggle light and dark theme"
-            className="absolute -top-14 right-1 md:right-0 w-10 h-10 rounded-full border flex items-center justify-center transition-all duration-250 hover:-translate-y-0.5 border-[#e3e7ef] dark:border-[#1e2740] bg-white dark:bg-[#0d1425] text-[#4c5568] dark:text-[#cfd6e3]"
+            className="
+              fixed
+              top-6
+              right-6
+              z-50
+              w-10
+              h-10
+              rounded-full
+              border
+              flex
+              items-center
+              justify-center
+              transition-all
+              duration-250
+              hover:-translate-y-0.5
+              border-[var(--outline-variant)]
+              bg-[var(--surface-container-lowest)]
+              text-[var(--on-surface)]
+              shadow-lg
+"
           >
-            {isDark ? (
+            {theme === "dark"? (
               /* Sun Icon */
               <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="4" />
@@ -89,49 +131,53 @@ export default function NavigoCreateAccount() {
           </button>
 
           {/* Auth Shell Container */}
-          <div className="flex flex-col md:flex-row rounded-[22px] overflow-hidden min-h-[780px] border shadow-[0_40px_80px_-30px_rgba(0,0,0,0.55)] transition-colors duration-400 bg-white dark:bg-[#0a0e18] border-[#e3e7ef] dark:border-[#161d2e]">
+          <div className="flex flex-col md:flex-row rounded-[22px] overflow-hidden min-h-[780px] border shadow-[0_40px_80px_-30px_rgba(0,0,0,0.55)] transition-colors duration-400 bg-[var(--background)] border-[var(--outline)]">
             
             {/* Visual / Left Panel */}
-            <div className="w-full md:w-[46%] p-7 md:p-10 flex flex-col gap-7">
-              <div className="flex-1 min-h-[220px] md:min-h-[320px] rounded-[16px] border flex items-center justify-center overflow-hidden relative bg-[#eef1f7] dark:bg-[#0d1425] border-[#dde2ec] dark:border-[#1b2439]">
+            <div className="w-full md:w-[46%] p-7 md:p-10 flex flex-col gap-7" style={{padding: '20px'}}>
+              <div className="flex-1 min-h-[220px] md:min-h-[320px] rounded-[16px] border flex items-center justify-center overflow-hidden relative bg-[var(--surface-container)] border-[var(--outline)]">
                 <img
                   className="w-[82%] h-[82%] object-contain drop-shadow-[0_10px_30px_rgba(0,0,0,0.35)]"
-                  src="travel_the_globe.svg"
+                  src="/plane.svg"
                   alt="Animated illustration of travel around the globe"
                 />
               </div>
               <div>
-                <h2 className="text-[30px] font-extrabold tracking-[-0.01em] mb-2.5 text-[#171b26] dark:text-[#f4f6fa]">
+                <h2 className="text-[30px] font-extrabold tracking-[-0.01em] mb-2.5 text-[var(--on-surface)] dark:text-[#f4f6fa]" style={{marginBottom: '10px'}}>
                   Elevate Your Journey.
                 </h2>
-                <p className="text-[14.5px] leading-[1.6] max-w-[420px] text-[#6b7386] dark:text-[#8c96ab]">
+                <p className="text-[14.5px] leading-[1.6] max-w-[420px] text-[var(--text-secondary)] dark:text-[#8c96ab]">
                   Experience seamless, highly curated travel itineraries designed for the discerning explorer.
                 </p>
               </div>
             </div>
 
             {/* Form / Right Panel */}
-            <div className="w-full md:w-[54%] p-8 md:p-[40px_48px] flex items-center justify-center">
+            <div className="w-full md:w-[54%] p-8 md:p-[40px_48px] flex items-center justify-center" style={{padding: '30px'}}>
               <div className="w-full max-w-[360px]">
                 
                 {/* Brand Logo */}
-                <div className="flex items-center justify-center gap-2.5 mb-7">
-                  <span className="w-[34px] h-[34px] rounded-full bg-gradient-to-br from-[#f9a663] to-[#e8823f] flex items-center justify-center shrink-0">
+                <div className="flex items-center justify-center gap-2.5 mb-7" style={{marginBottom: '24px'}}>
+                  <span className="w-[34px] h-[34px] rounded-full bg-gradient-to-br flex items-center justify-center shrink-0" style={{background: `linear-gradient(
+    135deg,
+    var(--primary),
+    var(--primary-hover)
+)`}}>
                     <svg className="w-[17px] h-[17px]" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <circle cx="12" cy="12" r="10" stroke="white" strokeWidth="1.6" />
                       <path d="M15.5 8.5L13 13L8.5 15.5L11 11L15.5 8.5Z" fill="white" />
                     </svg>
                   </span>
-                  <span className="text-[19px] font-extrabold tracking-[-0.01em] text-[#171b26] dark:text-[#f4f6fa]">
+                  <span className="text-[19px] font-extrabold tracking-[-0.01em] text-[var(--on-surface)] dark:text-[#f4f6fa]">
                     Navigo
                   </span>
                 </div>
 
                 {/* Form Heading */}
-                <h1 className="text-center text-[27px] font-extrabold tracking-[-0.01em] mb-2 text-[#171b26] dark:text-[#f4f6fa]">
+                <h1 className="text-center text-[27px] font-extrabold tracking-[-0.01em] mb-2 text-[var(--on-surface)] dark:text-[#f4f6fa]" style={{marginBottom: '8px'}}>
                   Create Account
                 </h1>
-                <p className="text-center mb-7 text-[14px] text-[#7a8398] dark:text-[#717d93]">
+                <p className="text-center mb-7 text-[14px] text-[var(--text-secondary)] dark:text-[#717d93]" style={{marginBottom: '20px'}}>
                   Join us to craft your next elevated expedition.
                 </p>
 
@@ -139,8 +185,8 @@ export default function NavigoCreateAccount() {
                 <form onSubmit={handleSubmit} noValidate>
                   
                   {/* Full Name Field */}
-                  <div className="mb-[18px]">
-                    <label htmlFor="fullName" className="block text-[11px] font-bold tracking-[0.07em] uppercase mb-2 text-[#6b7386] dark:text-[#7c8698]">
+                  <div className="mb-[18px]" style={{marginBottom: '18px'}}>
+                    <label htmlFor="fullName" className="block text-[11px] font-bold tracking-[0.07em] uppercase mb-2 text-[var(--text-secondary)] dark:text-[#7c8698]" style={{marginBottom: '8px'}}>
                       Full Name
                     </label>
                     <div className="relative flex items-center">
@@ -148,21 +194,13 @@ export default function NavigoCreateAccount() {
                         <path d="M20 21a8 8 0 1 0-16 0" />
                         <circle cx="12" cy="7" r="4" />
                       </svg>
-                      <input
-                        type="text"
-                        id="fullName"
-                        value={fullName}
-                        onChange={(e) => setFullName(e.target.value)}
-                        placeholder="Jane Doe"
-                        autoComplete="name"
-                        className="w-full py-3.5 pl-10 pr-3.5 text-[14px] rounded-md outline-none border border-transparent transition-all duration-200 bg-[#f4f6fa] dark:bg-white text-[#171b26] placeholder-[#9aa1b0] dark:placeholder-[#a7adba] focus:border-[#e8823f] focus:ring-4 focus:ring-[#e8823f]/25"
-                      />
+                      <FormInput type="text" id="fullName" onChange={(e) => setFullName(e.target.value)} name="fullName" autoComplete="name" placeholder="Jane Doe" />
                     </div>
                   </div>
 
                   {/* Email Field */}
-                  <div className="mb-[18px]">
-                    <label htmlFor="email" className="block text-[11px] font-bold tracking-[0.07em] uppercase mb-2 text-[#6b7386] dark:text-[#7c8698]">
+                  <div className="mb-[18px]" style={{marginBottom: '18px'}}>
+                    <label htmlFor="email" className="block text-[11px] font-bold tracking-[0.07em] uppercase mb-2 text-[var(--text-secondary)] dark:text-[#7c8698]" style={{marginBottom: '8px'}}>
                       Email Address
                     </label>
                     <div className="relative flex items-center">
@@ -170,21 +208,13 @@ export default function NavigoCreateAccount() {
                         <rect x="2" y="4" width="20" height="16" rx="2" />
                         <path d="m2 7 10 6 10-6" />
                       </svg>
-                      <input
-                        type="email"
-                        id="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="jane@example.com"
-                        autoComplete="email"
-                        className="w-full py-3.5 pl-10 pr-3.5 text-[14px] rounded-md outline-none border border-transparent transition-all duration-200 bg-[#f4f6fa] dark:bg-white text-[#171b26] placeholder-[#9aa1b0] dark:placeholder-[#a7adba] focus:border-[#e8823f] focus:ring-4 focus:ring-[#e8823f]/25"
-                      />
+                      <FormInput type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} name="email" autoComplete="email" placeholder="jane@example.com" />
                     </div>
                   </div>
 
                   {/* Password Field */}
-                  <div className="mb-[18px]">
-                    <label htmlFor="password" className="block text-[11px] font-bold tracking-[0.07em] uppercase mb-2 text-[#6b7386] dark:text-[#7c8698]">
+                  <div className="mb-[18px]" style={{marginBottom: '18px'}}>
+                    <label htmlFor="password" className="block text-[11px] font-bold tracking-[0.07em] uppercase mb-2 text-[var(--text-secondary)] dark:text-[#7c8698]" style={{marginBottom: '8px'}}>
                       Password
                     </label>
                     <div className="relative flex items-center">
@@ -192,20 +222,13 @@ export default function NavigoCreateAccount() {
                         <rect x="4" y="10" width="16" height="10" rx="2" />
                         <path d="M8 10V7a4 4 0 0 1 8 0v3" />
                       </svg>
-                      <input
-                        type={showPassword ? 'text' : 'password'}
-                        id="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="••••••••"
-                        autoComplete="new-password"
-                        className="w-full py-3.5 pl-10 pr-10 text-[14px] rounded-md outline-none border border-transparent transition-all duration-200 bg-[#f4f6fa] dark:bg-white text-[#171b26] placeholder-[#9aa1b0] dark:placeholder-[#a7adba] focus:border-[#e8823f] focus:ring-4 focus:ring-[#e8823f]/25"
-                      />
+                      <FormInput type={showPassword ? 'text' : 'password'} id="password" name="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" autoComplete="new-password" />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
                         aria-label={showPassword ? 'Hide password' : 'Show password'}
-                        className="absolute right-3 p-1 flex cursor-pointer text-[#a2a8b6] dark:text-[#b7bcc7] hover:text-[#171b26]"
+                        className="absolute right-3 p-1 flex cursor-pointer text-[#a2a8b6] dark:text-[#b7bcc7] hover:text-[var(--on-surface)]"
+                        style={{padding: '4px'}}
                       >
                         {showPassword ? (
                           /* Eye Off Icon */
@@ -224,13 +247,13 @@ export default function NavigoCreateAccount() {
                     </div>
 
                     {/* Strength Indicator */}
-                    <div className="flex justify-between text-[10.5px] font-bold tracking-[0.06em] mt-2.5 mb-1.5 text-[#7a8398] dark:text-[#717d93]">
+                    <div className="flex justify-between text-[10.5px] font-bold tracking-[0.06em] mt-2.5 mb-1.5 text-[var(--text-secondary)] dark:text-[#717d93]" style={{marginTop: '10px', marginBottom: '6px'}}>
                       <span>STRENGTH</span>
                       <span className={`transition-colors duration-200 ${strength.textColor}`}>
                         {strength.label}
                       </span>
                     </div>
-                    <div className="h-1 rounded-full overflow-hidden bg-[#e6e9f1] dark:bg-[#1b2438]">
+                    <div className="h-1 rounded-full overflow-hidden bg-[var(--surface-container-high)] dark:bg-[#1b2438]">
                       <div
                         className={`h-full rounded-full bg-gradient-to-r ${strength.gradient} transition-all duration-250 ease-out`}
                         style={{ width: strength.percent }}
@@ -241,7 +264,8 @@ export default function NavigoCreateAccount() {
                   {/* Submit Button */}
                   <button
                     type="submit"
-                    className="w-full mt-[22px] py-3.5 px-[18px] rounded-md border-none font-bold text-[15px] cursor-pointer flex items-center justify-center gap-2 text-[#231204] bg-gradient-to-r from-[#f9a663] to-[#e8823f] shadow-[0_12px_24px_-10px_rgba(232,130,63,0.55)] hover:shadow-[0_16px_28px_-10px_rgba(232,130,63,0.65)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-150"
+                    style={{padding: '15px 18px', marginTop: '22px', background: `linear-gradient(135deg, var(--primary), var(--primary-hover))`}}
+                    className="w-full mt-[22px] py-3.5 px-[18px] rounded-md border-none font-bold text-[15px] cursor-pointer flex items-center justify-center gap-2 text-[#231204] shadow-[0_12px_24px_-10px_rgba(232,130,63,0.55)] hover:shadow-[0_16px_28px_-10px_rgba(232,130,63,0.65)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-150"
                   >
                     Create Account
                     <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -251,8 +275,9 @@ export default function NavigoCreateAccount() {
                 </form>
 
                 {/* Divider */}
-                <div className="flex items-center gap-[14px] my-[22px] before:flex-1 before:h-px before:bg-[#e5e8f0] dark:before:bg-[#1d2740] after:flex-1 after:h-px after:bg-[#e5e8f0] dark:after:bg-[#1d2740]">
-                  <span className="text-[11px] font-bold tracking-[0.08em] text-[#7a8398] dark:text-[#717d93]">
+                <div className="flex items-center gap-[14px] my-[22px] before:flex-1 before:h-px before:bg-[var(--outline-variant)] dark:before:bg-[#1d2740] after:flex-1 after:h-px after:bg-[var(--outline-variant)] dark:after:bg-[#1d2740]"
+                style={{margin: '22px 0'}}>
+                  <span className="text-[11px] font-bold tracking-[0.08em] text-[var(--text-secondary)] dark:text-[#717d93]">
                     OR
                   </span>
                 </div>
@@ -260,7 +285,8 @@ export default function NavigoCreateAccount() {
                 {/* Google Sign In Button */}
                 <button
                   type="button"
-                  className="w-full py-3.5 px-[18px] rounded-md font-semibold text-[14px] flex items-center justify-center gap-[10px] cursor-pointer border transition-all duration-150 hover:-translate-y-0.5 bg-white dark:bg-[#0c1120] border-[#e2e6ef] dark:border-[#232d45] text-[#333a4a] dark:text-[#e7eaf1]"
+                  className="w-full py-3.5 px-[18px] rounded-md font-semibold text-[14px] flex items-center justify-center gap-[10px] cursor-pointer border transition-all duration-150 hover:-translate-y-0.5 bg-[var(--surface-container-lowest)] border-[var(--outline-variant)] text-[var(--on-surface)]"
+                  style={{padding: '15px 18px'}}
                 >
                   <svg className="w-[17px] h-[17px]" viewBox="0 0 48 48">
                     <path fill="#FFC107" d="M43.6 20.5H42V20.5H24v7h11.3C33.7 32 29.3 35 24 35c-6.1 0-11-4.9-11-11s4.9-11 11-11c2.6 0 5 .9 6.9 2.5l5.3-5.3C32.9 6.6 28.7 5 24 5 12.9 5 4 13.9 4 25s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.5-.4-3.5z" />
@@ -272,9 +298,9 @@ export default function NavigoCreateAccount() {
                 </button>
 
                 {/* Footer Link */}
-                <p className="text-center mt-[22px] text-[13.5px] text-[#7a8398] dark:text-[#717d93]">
+                <p className="text-center mt-[22px] text-[13.5px] text-[var(--text-secondary)]" style={{padding: '15px 18px'}}>
                   Already have an account?
-                  <a href="#" className="ml-1 font-bold text-[#171b26] dark:text-[#f4f6fa] hover:underline">
+                  <a href="#" className="ml-1 font-bold text-[var(--on-surface)] dark:text-[#f4f6fa] hover:underline">
                     Log In
                   </a>
                 </p>
@@ -285,6 +311,7 @@ export default function NavigoCreateAccount() {
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
+export default CreateAccount;
