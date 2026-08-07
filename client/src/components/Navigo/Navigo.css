@@ -1,0 +1,9 @@
+/* Brand logo focus & touch behaviors */
+a.group {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Subtle icon elevation on hover */
+a.group:hover .relative {
+  transform: translateY(-1px);
+}

@@ -119,6 +119,25 @@
   --body-md-weight: 400;
   --label-sm-weight: 500;
 
+  /* Plan Trip Page Variables (Light) */
+  --bg:#eef0f6;
+  --bg-grid: rgba(0,0,0,0.06);
+  --card-bg:#ffffff;
+  --card-border:#e5e8f0;
+  --input-bg:#f4f5f9;
+  --input-border:#e2e5ee;
+  --input-border-focus:#c9cee0;
+  --text-primary:#161a23;
+  --text-secondary-plan:#5c6478;
+  --text-muted:#9aa1b3;
+  --pill-bg:#f0f1f6;
+  --pill-border:#e2e5ee;
+  --pill-text:#4a5063;
+  --header-bg:#ffffff;
+  --header-border:#e5e8f0;
+  --logo-color:#161a23;
+  --plan-shadow: 0 30px 60px -25px rgba(30,40,80,0.18);
+  --divider: rgba(0,0,0,0.06);
 }
 
 /* ===================================
@@ -202,6 +221,26 @@
   --inverse-primary: #f97316;
 
   --section-bg: var(--background);
+
+  /* Plan Trip Page Variables (Dark) */
+  --bg:#0a0d16;
+  --bg-grid: rgba(255,255,255,0.06);
+  --card-bg:#131722;
+  --card-border:#232838;
+  --input-bg:#1a1f2e;
+  --input-border:#2b3142;
+  --input-border-focus:#3a4258;
+  --text-primary:#eef0f8;
+  --text-secondary-plan:#98a2b8;
+  --text-muted:#5f6a80;
+  --pill-bg:#1c2130;
+  --pill-border:#2b3142;
+  --pill-text:#c3cadb;
+  --header-bg:#0a0d16;
+  --header-border:#1c2130;
+  --logo-color:#eef0f8;
+  --plan-shadow: 0 30px 60px -20px rgba(0,0,0,0.6);
+  --divider: rgba(255,255,255,0.06);
 }
 
 .inter {
