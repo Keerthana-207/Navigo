@@ -87,3 +87,51 @@ export const FOOTER_LINKS = {
 export const CONTACT = {
   email: "support@navigo.com",
 };
+
+// Plan Trip
+export const TRIP_DURATION_OPTIONS = [
+    { name: "Weekend", days: 2 },
+    { name: "3 Days", days: 3 },
+    { name: "5 Days", days: 5 },
+    { name: "1 Week", days: 7 }
+];
+
+export const ACCOMMODATION_OPTIONS = [
+    { data: "hotel", text: "Hotel" },
+    { data: "homestay", text: "Homestay" },
+    { data: "hostel", text: "Hostel" },
+    { data: "camping", text: "Camping" }
+];
+
+export const TRANSPORT_OPTIONS = [
+    {
+        type: "flight",
+        label: "Flight"
+    },
+    {
+        type: "train",
+        label: "Train"
+    },
+    {
+        type: "car",
+        label: "Car"
+    }
+];
+
+export const TRAVEL_STYLES = [
+    {
+        type: "budget",
+        label: "Budget",
+        icon: "budget"
+    },
+    {
+        type: "standard",
+        label: "Standard",
+        icon: "standard"
+    },
+    {
+        type: "luxury",
+        label: "Luxury",
+        icon: "luxury"
+    }
+];

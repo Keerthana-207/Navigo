@@ -2,6 +2,7 @@ import Navbar from "../../components/Navbar/Navbar";
 import { Search, PlusCircle, Wallet, PlaneTakeoff, Heart, Backpack } from "lucide-react";
 import '../css/Dashboard.css'
 import Footer from "../../components/Footer/Footer";
+import Layout from "../../components/Layout/Layout";
 
 function ActionCard({
     icon,
@@ -29,15 +30,11 @@ function ActionCard({
 }
 
 function Dashboard() {
-    const user = {
-        name: "Krishna",
-        avatar: "https://i.pravatar.cc/150?img=3"
-    };
-
+    
     return (
         <>
-            <Navbar user={user} />
-            <main className="flex-grow pt-20">
+            <Layout>
+                <main className="flex-grow pt-20">
                 {/* Hero Section */}
                 <section className="relative w-full h-[60vh] min-h-[500px] flex flex-col items-center justify-center px-container-padding overflow-hidden">
                     {/* Background Image */}
@@ -133,7 +130,7 @@ function Dashboard() {
 
                 </section>
             </main>
-            <Footer />
+            </Layout>
         </>
     );
 }

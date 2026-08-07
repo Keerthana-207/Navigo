@@ -1,10 +1,8 @@
 import { useState } from "react";
-import {
-  MapPin,
-  Bell,
-  Moon,
-  Sun,
-} from "lucide-react";
+import {TRIP_DURATION_OPTIONS, ACCOMMODATION_OPTIONS, TRANSPORT_OPTIONS, TRAVEL_STYLES} from "../../constants";
+import Layout from "../../components/Layout/Layout";
+import { MapPin, PiggyBank, HomeIcon, Plane, TrainFront, Car } from "lucide-react";
+import { IoDiamondOutline } from "react-icons/io5";
 
 /* ─────────────────────────────────────
    Sub-components
@@ -153,7 +151,6 @@ function SegButton({ text, data, selected, onClick }) {
 ───────────────────────────────────── */
 
 function PlanTrip() {
-  const [theme, setTheme] = useState("dark");
   const [travelersCount, setTravelersCount] = useState(2);
   const [duration, setDuration] = useState(2);
   const [travelStyle, setTravelStyle] = useState("standard");
@@ -162,95 +159,23 @@ function PlanTrip() {
   const [destination, setDestination] = useState("");
   const [budget, setBudget] = useState("");
 
-  const toggleTheme = () => {
-    const next = theme === "dark" ? "light" : "dark";
-    setTheme(next);
-    document.documentElement.setAttribute("data-theme", next);
-  };
+  const styleIcons = {
+    budget: (
+      <PiggyBank size={25}/>
+    ),
+    standard: (
+        <HomeIcon size={25}/> 
+    ),
+    luxury: (
+        <IoDiamondOutline size={25}/>
+    ),
+  }
 
-  const CHIPS = [
-    { name: "Weekend", days: 2 },
-    { name: "3 Days", days: 3 },
-    { name: "5 Days", days: 5 },
-    { name: "1 Week", days: 7 },
-  ];
-
-  const STYLES = [
-    {
-      type: "budget",
-      label: "Budget",
-      icon: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: "100%", height: "100%" }}>
-          <path d="M19 5c-1.5 0-2.8 1.4-3 2-3.5-1.5-11-.3-11 5 0 1.8 0 3 2 4.5V20h4v-1.5h3V20h4v-4c1-.5 2-1.5 2-3h1V9h-2c0-1-.5-1.7-1-2z"/>
-          <path d="M2 9v1h3"/>
-          <circle cx="8" cy="14" r="1.5"/>
-        </svg>
-      ),
-    },
-    {
-      type: "standard",
-      label: "Standard",
-      icon: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: "100%", height: "100%" }}>
-          <path d="M9 18h6"/>
-          <path d="M10 22h4"/>
-          <path d="M12 2a7 7 0 0 0-4 12.7c.7.5 1 1.2 1 2.05V17h6v-2.25c0-.85.3-1.55 1-2.05A7 7 0 0 0 12 2z"/>
-        </svg>
-      ),
-    },
-    {
-      type: "luxury",
-      label: "Luxury",
-      icon: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: "100%", height: "100%" }}>
-          <path d="M6 3h12l4 6-10 12L2 9z"/>
-          <path d="M11 3 8 9l4 12 4-12-3-6"/>
-          <path d="M2 9h20"/>
-        </svg>
-      ),
-    },
-  ];
-
-  const TRANSPORTS = [
-    {
-      type: "flight",
-      label: "Flight",
-      icon: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: "100%", height: "100%" }}>
-          <path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-1 .1-1.3.5l-.7.8c-.4.5-.2 1.2.3 1.5L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 2.7 5.9c.3.5 1 .7 1.5.3l.8-.7c.4-.3.6-.8.5-1.3z"/>
-        </svg>
-      ),
-    },
-    {
-      type: "train",
-      label: "Train",
-      icon: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: "100%", height: "100%" }}>
-          <rect x="4" y="3" width="16" height="14" rx="3"/>
-          <path d="M4 11h16"/>
-          <circle cx="8.5" cy="14.5" r="0.6" fill="currentColor"/>
-          <circle cx="15.5" cy="14.5" r="0.6" fill="currentColor"/>
-          <path d="m8 21-2 2M16 21l2 2"/>
-        </svg>
-      ),
-    },
-    {
-      type: "car",
-      label: "Car",
-      icon: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: "100%", height: "100%" }}>
-          <path d="M5 17h14M5 17a2 2 0 1 1-4 0M5 17V9l2-4h10l2 4v8M19 17a2 2 0 1 0 4 0"/>
-        </svg>
-      ),
-    },
-  ];
-
-  const ACCOMMODATIONS = [
-    { data: "hotel", text: "Hotel" },
-    { data: "homestay", text: "Homestay" },
-    { data: "hostel", text: "Hostel" },
-    { data: "camping", text: "Camping" },
-  ];
+  const transportIcons = {
+    "flight": (<Plane size={16}/>),
+    "train": (<TrainFront size={16}/>),
+    "car": (<Car size={16}/>) 
+  }
 
   const handleContinue = () => {
     const tripData = {
@@ -277,95 +202,7 @@ function PlanTrip() {
       }}
     >
       {/* ── Header ── */}
-      <header
-        className="flex items-center justify-between"
-        style={{
-          padding: "28px 56px",
-          background: "var(--header-bg)",
-          borderBottom: "1px solid var(--header-border)",
-          transition: "background 0.35s ease, border-color 0.35s ease",
-        }}
-      >
-        {/* Logo */}
-        <div
-          className="text-[22px] font-extrabold tracking-[-0.02em]"
-          style={{ color: "var(--logo-color)" }}
-        >
-          Navigo
-        </div>
-
-        {/* Nav */}
-        <nav className="hidden md:flex" style={{ gap: "36px" }}>
-          {["Home", "My Trips", "Budget"].map((item) => (
-            <a
-              key={item}
-              href="#"
-              className="text-[14px] font-medium transition-colors duration-200 hover:text-[var(--text-primary)]"
-              style={{ color: "var(--text-secondary-plan)", paddingBottom: "6px", textDecoration: "none" }}
-            >
-              {item}
-            </a>
-          ))}
-          <a
-            href="#"
-            className="text-[14px] font-semibold relative"
-            style={{ color: "var(--text-primary)", paddingBottom: "6px", textDecoration: "none" }}
-          >
-            Explore
-            <span
-              className="absolute left-0 right-0 rounded-[2px]"
-              style={{
-                bottom: "-2px",
-                height: "2px",
-                background: "linear-gradient(90deg,#4f7cff,#7aa2ff)",
-              }}
-            />
-          </a>
-        </nav>
-
-        {/* Icons */}
-        <div className="flex items-center" style={{ gap: "20px" }}>
-          {/* Theme toggle */}
-          <button
-            id="theme-toggle"
-            aria-label="Toggle theme"
-            title="Toggle light / dark theme"
-            onClick={toggleTheme}
-            className="
-              w-[36px] h-[36px] rounded-full flex items-center justify-center
-              border-0 bg-transparent cursor-pointer
-              transition-all duration-200
-              hover:bg-[var(--pill-bg)]
-            "
-            style={{ color: "var(--text-secondary-plan)" }}
-          >
-            {theme === "dark" ? <Moon size={19} /> : <Sun size={19} />}
-          </button>
-
-          {/* Notifications */}
-          <button
-            aria-label="Notifications"
-            className="
-              w-[36px] h-[36px] rounded-full flex items-center justify-center
-              border-0 bg-transparent cursor-pointer
-              transition-all duration-200
-              hover:bg-[var(--pill-bg)]
-            "
-            style={{ color: "var(--text-secondary-plan)" }}
-          >
-            <Bell size={19} />
-          </button>
-
-          {/* Avatar */}
-          <div
-            className="w-[34px] h-[34px] rounded-full flex items-center justify-center text-[13px] font-bold text-white flex-shrink-0"
-            style={{ background: "linear-gradient(135deg,#f97316,#fb923c)" }}
-          >
-            N
-          </div>
-        </div>
-      </header>
-
+      <Layout>
       {/* ── Two-column page layout ── */}
       <div
         className="grid"
@@ -552,7 +389,7 @@ function PlanTrip() {
                   className="flex flex-wrap"
                   style={{ gap: "8px", marginTop: "10px" }}
                 >
-                  {CHIPS.map((chip) => (
+                  {TRIP_DURATION_OPTIONS.map((chip) => (
                     <TripChip
                       key={chip.days}
                       name={chip.name}
@@ -574,12 +411,12 @@ function PlanTrip() {
                 Travel Style
               </label>
               <div className="grid grid-cols-3" style={{ gap: "14px" }}>
-                {STYLES.map((s) => (
+                {TRAVEL_STYLES.map((s) => (
                   <StyleCard
                     key={s.type}
                     type={s.type}
                     label={s.label}
-                    icon={s.icon}
+                    icon={styleIcons[s.type]}
                     selected={travelStyle === s.type}
                     onClick={() => setTravelStyle(s.type)}
                   />
@@ -616,18 +453,7 @@ function PlanTrip() {
                       fontFamily: "inherit",
                     }}
                   />
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    style={{ width: "17px", height: "17px", flexShrink: 0, color: "var(--text-muted)" }}
-                  >
-                    <rect x="2" y="6" width="20" height="12" rx="2" />
-                    <path d="M2 10h20" />
-                  </svg>
+                  
                 </FieldInput>
               </div>
 
@@ -643,12 +469,12 @@ function PlanTrip() {
                   className="flex flex-wrap"
                   style={{ gap: "8px", marginTop: "10px" }}
                 >
-                  {TRANSPORTS.map((t) => (
+                  {TRANSPORT_OPTIONS.map((t) => (
                     <TransportPill
                       key={t.type}
                       type={t.type}
                       label={t.label}
-                      icon={t.icon}
+                      icon={transportIcons[t.type]}
                       selected={transport === t.type}
                       onClick={() => setTransport(t.type)}
                     />
@@ -674,7 +500,7 @@ function PlanTrip() {
                   gap: "4px",
                 }}
               >
-                {ACCOMMODATIONS.map((a) => (
+                {ACCOMMODATION_OPTIONS.map((a) => (
                   <SegButton
                     key={a.data}
                     text={a.text}
@@ -708,6 +534,7 @@ function PlanTrip() {
           </div>
         </div>
       </div>
+      </Layout>
     </div>
   );
 }
