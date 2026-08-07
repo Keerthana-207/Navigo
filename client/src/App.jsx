@@ -6,6 +6,7 @@ import PlanTrip from './pages/dashboard/PlanTripPage'
 import BudgetPage from './pages/dashboard/BudgetPage'
 import Budget from './pages/dashboard/Budget'
 
+
 function App() {
   return (
     <>
