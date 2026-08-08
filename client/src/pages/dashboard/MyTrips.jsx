@@ -3,7 +3,6 @@ import {
     Plus,
     MapPin,
     CalendarDays,
-    MoreHorizontal,
     Plane,
     CheckCircle2,
     Clock3,
@@ -11,12 +10,15 @@ import {
     ArrowRight,
     TrainFront,
     Car,
+    TrashIcon
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 import Layout from "../../components/Layout/Layout";
 import { getMyTrips, deleteTrip } from "../../services/tripApi";
 
 function MyTrips() {
+    const navigate = useNavigate();
     const [trips, setTrips] = useState([]);
     const [filter, setFilter] = useState("all");
 
@@ -34,14 +36,16 @@ function MyTrips() {
                 if (data.success) {
                     setTrips(data.trips || []);
                 } else {
-                    setError(data.message || "Failed to fetch trips.");
+                    setError(
+                        data.message || "Failed to fetch trips."
+                    );
                 }
             } catch (err) {
                 console.error("Fetch Trips Error:", err);
 
                 setError(
                     err.message ||
-                    "Unable to load your trips. Please try again."
+                        "Unable to load your trips. Please try again."
                 );
             } finally {
                 setLoading(false);
@@ -52,10 +56,20 @@ function MyTrips() {
     }, []);
 
     const handleDeleteTrip = async (tripId) => {
-        if (!window.confirm("Are you sure you want to delete this trip?")) return;
+        if (
+            !window.confirm(
+                "Are you sure you want to delete this trip?"
+            )
+        ) {
+            return;
+        }
+
         try {
             await deleteTrip(tripId);
-            setTrips((prev) => prev.filter((t) => t._id !== tripId));
+
+            setTrips((prev) =>
+                prev.filter((t) => t._id !== tripId)
+            );
         } catch (err) {
             alert(err.message || "Failed to delete trip");
         }
@@ -63,14 +77,17 @@ function MyTrips() {
 
     const getTripStatus = (trip) => {
         if (trip.status) return trip.status;
+
         if (trip.startDate && trip.endDate) {
             const now = new Date();
             const start = new Date(trip.startDate);
             const end = new Date(trip.endDate);
+
             if (now < start) return "upcoming";
             if (now >= start && now <= end) return "active";
             if (now > end) return "completed";
         }
+
         return "upcoming";
     };
 
@@ -98,13 +115,14 @@ function MyTrips() {
         <Layout>
             <div
                 style={{
-                    minHeight: "100vh",
-                    background: "var(--bg)",
+                    background: "var(--background)",
                     color: "var(--text-primary)",
                     fontFamily:
                         "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+
                     padding:
-                        "var(--section-padding-y) var(--section-padding-x)",
+                        "40px",
+
                     transition:
                         "background 0.35s ease, color 0.35s ease",
                 }}
@@ -113,6 +131,7 @@ function MyTrips() {
                     className="mx-auto w-full"
                     style={{
                         maxWidth: "var(--container-width)",
+                        padding: "10px 0 60px 0",
                     }}
                 >
                     {/* Header */}
@@ -126,20 +145,24 @@ function MyTrips() {
                             md:justify-between
                         "
                         style={{
-                            marginBottom: "40px",
+                            marginBottom: "48px",
                         }}
                     >
-                        <div>
+                        <div
+                            style={{
+                                padding: "4px 0",
+                            }}
+                        >
                             <p
                                 className="
-                                    text-xs
+                                    text-sm
                                     font-semibold
                                     uppercase
                                     tracking-[0.18em]
                                 "
                                 style={{
                                     color: "var(--primary)",
-                                    marginBottom: "8px",
+                                    marginBottom: "12px",
                                 }}
                             >
                                 Your journeys
@@ -149,21 +172,24 @@ function MyTrips() {
                                 className="
                                     text-4xl
                                     font-bold
-                                    md:text-5xl
+                                    md:text-6xl
                                 "
                                 style={{
                                     color: "var(--text-primary)",
-                                    marginBottom: "10px",
+                                    marginBottom: "14px",
+                                    lineHeight: "1.1",
                                 }}
                             >
                                 My Trips
                             </h1>
 
                             <p
-                                className="text-sm md:text-base"
+                                className="text-base md:text-lg"
                                 style={{
                                     color:
                                         "var(--text-secondary-plan)",
+                                    margin: "0",
+                                    lineHeight: "1.7",
                                 }}
                             >
                                 Plan, track and relive your travel
@@ -174,7 +200,7 @@ function MyTrips() {
                         <button
                             type="button"
                             onClick={() =>
-                                (window.location.href = "/plan-trip")
+                                navigate('/plan-trip')
                             }
                             className="
                                 btn-primary
@@ -183,16 +209,21 @@ function MyTrips() {
                                 items-center
                                 gap-2
                                 rounded-full
-                                font-semibold
+                                font-bold
+                                text-white
                                 text-sm
                                 transition-transform
                                 hover:-translate-y-0.5
+                                cursor: pointer;
                             "
                             style={{
-                                padding: "12px 20px",
+                                padding: "14px 24px",
+                                fontSize: "15px",
+                                marginTop: "8px",
+                                background: "var(--primary)"
                             }}
                         >
-                            <Plus size={18} />
+                            <Plus size={19} />
                             Plan New Trip
                         </button>
                     </header>
@@ -202,11 +233,11 @@ function MyTrips() {
                         className="
                             grid
                             grid-cols-1
-                            gap-4
+                            gap-5
                             sm:grid-cols-3
                         "
                         style={{
-                            marginBottom: "40px",
+                            marginBottom: "48px",
                         }}
                     >
                         <StatCard
@@ -235,10 +266,10 @@ function MyTrips() {
                             flex-wrap
                             items-center
                             justify-between
-                            gap-4
+                            gap-5
                         "
                         style={{
-                            marginBottom: "24px",
+                            marginBottom: "30px",
                         }}
                     >
                         <div
@@ -253,7 +284,7 @@ function MyTrips() {
                                     "var(--pill-bg)",
                                 border:
                                     "1px solid var(--pill-border)",
-                                padding: "4px",
+                                padding: "5px",
                             }}
                         >
                             {[
@@ -269,13 +300,14 @@ function MyTrips() {
                                     }
                                     className="
                                         rounded-full
-                                        text-xs
+                                        text-sm
                                         font-semibold
                                         capitalize
                                         transition-all
                                     "
                                     style={{
-                                        padding: "8px 16px",
+                                        padding:
+                                            "9px 18px",
                                         background:
                                             filter === item
                                                 ? "var(--primary)"
@@ -292,9 +324,10 @@ function MyTrips() {
                         </div>
 
                         <span
-                            className="text-xs"
+                            className="text-sm"
                             style={{
                                 color: "var(--text-muted)",
+                                marginRight: "4px",
                             }}
                         >
                             {filteredTrips.length} trip
@@ -313,9 +346,12 @@ function MyTrips() {
                                 items-center
                                 justify-center
                             "
+                            style={{
+                                padding: "50px 20px",
+                            }}
                         >
                             <p
-                                className="text-sm"
+                                className="text-base"
                                 style={{
                                     color:
                                         "var(--text-secondary-plan)",
@@ -331,12 +367,15 @@ function MyTrips() {
                         <div
                             className="rounded-2xl border"
                             style={{
-                                padding: "20px",
+                                padding: "24px",
+                                marginBottom: "30px",
                                 borderColor:
                                     "rgba(239,68,68,0.25)",
                                 background:
                                     "rgba(239,68,68,0.08)",
                                 color: "#ef4444",
+                                fontSize: "15px",
+                                lineHeight: "1.6",
                             }}
                         >
                             {error}
@@ -358,7 +397,7 @@ function MyTrips() {
                                 className="
                                     grid
                                     grid-cols-1
-                                    gap-6
+                                    gap-7
                                     md:grid-cols-2
                                     xl:grid-cols-3
                                 "
@@ -367,6 +406,7 @@ function MyTrips() {
                                     <TripCard
                                         key={trip._id}
                                         trip={trip}
+                                        onDelete={handleDeleteTrip}
                                     />
                                 ))}
 
@@ -374,13 +414,12 @@ function MyTrips() {
                                 <button
                                     type="button"
                                     onClick={() =>
-                                        (window.location.href =
-                                            "/plan-trip")
+                                        navigate('/plan-trip')
                                     }
                                     className="
                                         group
                                         flex
-                                        min-h-[420px]
+                                        min-h-[440px]
                                         flex-col
                                         items-center
                                         justify-center
@@ -396,14 +435,14 @@ function MyTrips() {
                                             "var(--card-border)",
                                         background:
                                             "var(--card-bg)",
-                                        padding: "32px",
+                                        padding: "40px",
                                     }}
                                 >
                                     <div
                                         className="
                                             flex
-                                            h-14
-                                            w-14
+                                            h-16
+                                            w-16
                                             items-center
                                             justify-center
                                             rounded-full
@@ -415,21 +454,21 @@ function MyTrips() {
                                                 "var(--primary-container)",
                                             color:
                                                 "var(--primary)",
-                                            marginBottom: "16px",
+                                            marginBottom: "20px",
                                         }}
                                     >
-                                        <Plus size={24} />
+                                        <Plus size={27} />
                                     </div>
 
                                     <h3
                                         className="
-                                            text-lg
+                                            text-xl
                                             font-semibold
                                         "
                                         style={{
                                             color:
                                                 "var(--text-primary)",
-                                            marginBottom: "6px",
+                                            marginBottom: "9px",
                                         }}
                                     >
                                         Create a new trip
@@ -437,13 +476,14 @@ function MyTrips() {
 
                                     <p
                                         className="
-                                            max-w-[220px]
-                                            text-xs
-                                            leading-5
+                                            max-w-[250px]
+                                            text-sm
+                                            leading-6
                                         "
                                         style={{
                                             color:
                                                 "var(--text-secondary-plan)",
+                                            margin: "0",
                                         }}
                                     >
                                         Start planning your next
@@ -467,15 +507,21 @@ function StatCard({ icon: Icon, label, value }) {
         <div
             className="glass-card rounded-[22px]"
             style={{
-                padding: "20px",
+                padding: "24px",
+                minHeight: "120px",
             }}
         >
-            <div className="flex items-center gap-4">
+            <div
+                className="flex items-center"
+                style={{
+                    gap: "16px",
+                }}
+            >
                 <div
                     className="
                         flex
-                        h-11
-                        w-11
+                        h-12
+                        w-12
                         shrink-0
                         items-center
                         justify-center
@@ -487,29 +533,30 @@ function StatCard({ icon: Icon, label, value }) {
                         color: "var(--primary)",
                     }}
                 >
-                    <Icon size={20} />
+                    <Icon size={22} />
                 </div>
 
                 <div>
                     <p
                         className="
-                            text-xs
+                            text-sm
                             uppercase
                             tracking-wide
                         "
                         style={{
                             color:
                                 "var(--text-secondary-plan)",
-                            marginBottom: "3px",
+                            marginBottom: "5px",
                         }}
                     >
                         {label}
                     </p>
 
                     <p
-                        className="text-2xl font-bold"
+                        className="text-3xl font-bold"
                         style={{
                             color: "var(--text-primary)",
+                            lineHeight: "1",
                         }}
                     >
                         {value}
@@ -524,7 +571,7 @@ function StatCard({ icon: Icon, label, value }) {
 /* Trip Card */
 /* -------------------------------------------------- */
 
-function TripCard({ trip }) {
+function TripCard({ trip, onDelete }) {
     const status = trip.status || "upcoming";
     const isCompleted = status === "completed";
 
@@ -544,13 +591,25 @@ function TripCard({ trip }) {
     const formattedBudget =
         trip.budget !== null &&
         trip.budget !== undefined
-            ? `₹${Number(trip.budget).toLocaleString("en-IN")}`
+            ? `₹${Number(trip.budget).toLocaleString(
+                  "en-IN"
+              )}`
             : "Not specified";
 
     return (
-        <article className="glass-card overflow-hidden rounded-[22px]">
+        <article
+            className="
+                glass-card
+                overflow-hidden
+                rounded-[22px]
+                transition-all
+                hover:-translate-y-1
+            "
+        >
             {/* Image */}
-            <div className="relative h-52 overflow-hidden">
+            <div
+                className="relative h-56 overflow-hidden"
+            >
                 <div
                     className="
                         flex
@@ -559,12 +618,13 @@ function TripCard({ trip }) {
                         items-center
                         justify-center
                         bg-gradient-to-br
-                        from-orange-400
-                        to-orange-600
+                        from-[#3a1f45]
+                        via-[#7a3b3b]
+                        to-[#f2a950]
                     "
                 >
                     <MapPin
-                        size={52}
+                        size={56}
                         className="text-white/80"
                     />
                 </div>
@@ -574,8 +634,8 @@ function TripCard({ trip }) {
                         absolute
                         inset-0
                         bg-gradient-to-t
-                        from-black/70
-                        via-black/10
+                        from-black/75
+                        via-black/15
                         to-transparent
                     "
                 />
@@ -591,11 +651,12 @@ function TripCard({ trip }) {
                         position: "absolute",
                         top: "16px",
                         left: "16px",
-                        padding: "6px 10px",
+                        padding: "7px 12px",
                         borderRadius: "999px",
-                        fontSize: "10px",
-                        fontWeight: 600,
+                        fontSize: "11px",
+                        fontWeight: 700,
                         textTransform: "uppercase",
+                        letterSpacing: "0.04em",
                     }}
                 >
                     {status}
@@ -603,13 +664,18 @@ function TripCard({ trip }) {
 
                 <button
                     type="button"
+                    onClick={() => {
+                        if (onDelete) {
+                            onDelete(trip._id);
+                        }
+                    }}
                     className="
                         absolute
                         right-3
                         top-3
                         flex
-                        h-9
-                        w-9
+                        h-10
+                        w-10
                         items-center
                         justify-center
                         rounded-full
@@ -619,33 +685,39 @@ function TripCard({ trip }) {
                         transition-colors
                         hover:bg-black/70
                     "
+                    aria-label="Trip options"
                 >
-                    <MoreHorizontal size={18} />
+                    <TrashIcon size={19} />
                 </button>
 
                 <div
                     className="
                         absolute
-                        bottom-4
-                        left-4
-                        right-4
+                        bottom-5
+                        left-5
+                        right-5
                     "
                 >
-                    <h2 className="text-xl font-bold text-white">
+                    <h2
+                        className="text-2xl font-bold text-white"
+                        style={{
+                            marginBottom: "6px",
+                            lineHeight: "1.2",
+                        }}
+                    >
                         {trip.destination}
                     </h2>
 
                     <div
                         className="
-                            mt-1
                             flex
                             items-center
                             gap-1
-                            text-xs
+                            text-sm
                             text-white/80
                         "
                     >
-                        <MapPin size={13} />
+                        <MapPin size={14} />
                         {trip.destination}
                     </div>
                 </div>
@@ -654,7 +726,7 @@ function TripCard({ trip }) {
             {/* Content */}
             <div
                 style={{
-                    padding: "20px",
+                    padding: "24px",
                 }}
             >
                 <div
@@ -662,16 +734,21 @@ function TripCard({ trip }) {
                         flex
                         items-center
                         justify-between
-                        gap-4
+                        gap-5
                     "
                     style={{
-                        marginBottom: "18px",
+                        marginBottom: "22px",
                     }}
                 >
                     {/* Duration */}
-                    <div className="flex items-center gap-2">
+                    <div
+                        className="flex items-center"
+                        style={{
+                            gap: "10px",
+                        }}
+                    >
                         <CalendarDays
-                            size={16}
+                            size={19}
                             style={{
                                 color: "var(--primary)",
                             }}
@@ -680,19 +757,20 @@ function TripCard({ trip }) {
                         <div>
                             <p
                                 className="
-                                    text-xs
+                                    text-sm
                                     font-semibold
                                 "
                                 style={{
                                     color:
                                         "var(--text-primary)",
+                                    marginBottom: "4px",
                                 }}
                             >
                                 {trip.duration} days
                             </p>
 
                             <p
-                                className="text-[10px]"
+                                className="text-xs"
                                 style={{
                                     color:
                                         "var(--text-muted)",
@@ -707,9 +785,14 @@ function TripCard({ trip }) {
                     </div>
 
                     {/* Budget */}
-                    <div className="flex items-center gap-2">
+                    <div
+                        className="flex items-center"
+                        style={{
+                            gap: "10px",
+                        }}
+                    >
                         <WalletCards
-                            size={16}
+                            size={19}
                             style={{
                                 color: "var(--tertiary)",
                             }}
@@ -718,19 +801,20 @@ function TripCard({ trip }) {
                         <div>
                             <p
                                 className="
-                                    text-xs
+                                    text-sm
                                     font-semibold
                                 "
                                 style={{
                                     color:
                                         "var(--text-primary)",
+                                    marginBottom: "4px",
                                 }}
                             >
                                 {formattedBudget}
                             </p>
 
                             <p
-                                className="text-[10px]"
+                                className="text-xs"
                                 style={{
                                     color:
                                         "var(--text-muted)",
@@ -751,7 +835,7 @@ function TripCard({ trip }) {
                         gap-2
                     "
                     style={{
-                        marginBottom: "18px",
+                        marginBottom: "24px",
                     }}
                 >
                     <span
@@ -760,11 +844,11 @@ function TripCard({ trip }) {
                             items-center
                             gap-1
                             rounded-full
-                            text-[10px]
+                            text-xs
                             font-semibold
                         "
                         style={{
-                            padding: "6px 9px",
+                            padding: "7px 11px",
                             background:
                                 "var(--pill-bg)",
                             color:
@@ -778,11 +862,11 @@ function TripCard({ trip }) {
                     <span
                         className="
                             rounded-full
-                            text-[10px]
+                            text-xs
                             font-semibold
                         "
                         style={{
-                            padding: "6px 9px",
+                            padding: "7px 11px",
                             background:
                                 "var(--pill-bg)",
                             color:
@@ -795,11 +879,11 @@ function TripCard({ trip }) {
                     <span
                         className="
                             rounded-full
-                            text-[10px]
+                            text-xs
                             font-semibold
                         "
                         style={{
-                            padding: "6px 9px",
+                            padding: "7px 11px",
                             background:
                                 "var(--pill-bg)",
                             color:
@@ -811,7 +895,12 @@ function TripCard({ trip }) {
                 </div>
 
                 {/* Footer */}
-                <div className="flex items-center justify-end">
+                <div
+                    className="flex items-center justify-end"
+                    style={{
+                        paddingTop: "4px",
+                    }}
+                >
                     <button
                         type="button"
                         onClick={() =>
@@ -822,17 +911,18 @@ function TripCard({ trip }) {
                             flex
                             items-center
                             gap-1
-                            text-xs
+                            text-sm
                             font-semibold
                             transition-all
                             hover:gap-2
                         "
                         style={{
                             color: "var(--primary)",
+                            padding: "5px 0",
                         }}
                     >
                         View Trip
-                        <ArrowRight size={14} />
+                        <ArrowRight size={16} />
                     </button>
                 </div>
             </div>
@@ -849,7 +939,7 @@ function EmptyTrips() {
         <div
             className="
                 flex
-                min-h-[350px]
+                min-h-[380px]
                 flex-col
                 items-center
                 justify-center
@@ -861,7 +951,8 @@ function EmptyTrips() {
             style={{
                 borderColor: "var(--card-border)",
                 background: "var(--card-bg)",
-                padding: "40px",
+                padding: "50px 30px",
+                marginTop: "10px",
             }}
         >
             <div
@@ -877,28 +968,29 @@ function EmptyTrips() {
                     background:
                         "var(--primary-container)",
                     color: "var(--primary)",
-                    marginBottom: "18px",
+                    marginBottom: "22px",
                 }}
             >
                 <Plane size={28} />
             </div>
 
             <h2
-                className="text-xl font-bold"
+                className="text-2xl font-bold"
                 style={{
                     color: "var(--text-primary)",
-                    marginBottom: "8px",
+                    marginBottom: "10px",
                 }}
             >
                 No trips yet
             </h2>
 
             <p
-                className="text-sm"
+                className="text-base"
                 style={{
                     color:
                         "var(--text-secondary-plan)",
-                    marginBottom: "20px",
+                    marginBottom: "24px",
+                    lineHeight: "1.7",
                 }}
             >
                 Start planning your first adventure.
@@ -907,7 +999,8 @@ function EmptyTrips() {
             <button
                 type="button"
                 onClick={() =>
-                    (window.location.href = "/plan-trip")
+                    (window.location.href =
+                        "/plan-trip")
                 }
                 className="
                     btn-primary
@@ -918,10 +1011,11 @@ function EmptyTrips() {
                     font-semibold
                 "
                 style={{
-                    padding: "11px 18px",
+                    padding: "13px 21px",
+                    fontSize: "15px",
                 }}
             >
-                <Plus size={17} />
+                <Plus size={18} />
                 Plan a Trip
             </button>
         </div>
