@@ -1,0 +1,13 @@
+.hero-background {
+    width: 100%;
+    min-height: 100vh;
+
+    background-image: url("/background.png");
+
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+
+    overflow: hidden;
+}
