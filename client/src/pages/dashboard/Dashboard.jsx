@@ -3,6 +3,7 @@ import { Search, PlusCircle, Wallet, PlaneTakeoff, Heart, Backpack } from "lucid
 import '../css/Dashboard.css'
 import Footer from "../../components/Footer/Footer";
 import Layout from "../../components/Layout/Layout";
+import { useState } from "react";
 
 function ActionCard({
     icon,
@@ -30,39 +31,192 @@ function ActionCard({
 }
 
 function Dashboard() {
-    
+    const [user] = useState(() => {
+        const storedUser =
+            localStorage.getItem("user") ||
+            sessionStorage.getItem("user");
+
+        return storedUser
+            ? JSON.parse(storedUser)
+            : null;
+    });
     return (
         <>
             <Layout>
-                <main className="flex-grow pt-20">
-                {/* Hero Section */}
-                <section className="relative w-full h-[60vh] min-h-[500px] flex flex-col items-center justify-center px-container-padding overflow-hidden">
+
+            <main
+                className="
+                    flex-grow
+                    pt-20
+                    min-h-screen
+                    bg-[var(--background)]
+                    text-[var(--on-background)]
+                    transition-colors
+                    duration-300
+                "
+            >
+
+                {/* ========================================
+                    HERO SECTION
+                ======================================== */}
+
+                <section
+                    className="
+                        relative
+                        w-full
+                        h-[60vh]
+                        min-h-[500px]
+                        flex
+                        flex-col
+                        items-center
+                        justify-center
+                        px-container-padding
+                        overflow-hidden
+                    "
+                >
+
                     {/* Background Image */}
+
                     <div className="absolute inset-0 z-0">
-                        <img 
-                            alt="Bright sunrise over a mountain lake" 
-                            className="w-full h-full object-cover" 
+
+                        <img
+                            alt="Bright sunrise over a mountain lake"
+                            className="
+                                w-full
+                                h-full
+                                object-cover
+                            "
                             src="https://lh3.googleusercontent.com/aida-public/AB6AXuCKNb1yW3eLi1Ae5Z2dg0g4UxO1NPCaVycGImUSPdc0FGNeBEUGJadTg0HYqD7BlAmh5AZ59AG73hKAgJdWX8D4jLQHK1ACuqsMa_LLwqZobpTUKUiD577l6k5Z0a2fXJCeLBQ6gTUB9bEPGa1P9Suu7LJkUJ1KNif0-i2VeLchzqmjmdM6fYbSe8vlOR_E9r6H_8U0xMqo3fHElnQAxGqt2RFCyl48EwDmazjJ_Drwe3Xx92f3iUiAOQ"
                         />
-                        <div className="absolute inset-0 backdrop-blur-[4px]"
-                            style={{ background: "var(--hero-overlay)" }}></div>
-                        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-surface"></div>
+
+                        {/* Theme Overlay */}
+
+                        <div
+                            className="
+                                absolute
+                                inset-0
+                                backdrop-blur-[4px]
+                            "
+                            style={{
+                                background:
+                                    "var(--hero-overlay)"
+                            }}
+                        />
+
+                        {/* Bottom Fade */}
+
+                        <div
+                            className="
+                                absolute
+                                inset-0
+                                pointer-events-none
+                            "
+                            style={{
+                                background:
+                                    "linear-gradient(to bottom, transparent 55%, var(--background) 100%)"
+                            }}
+                        />
+
                     </div>
-                    {/* Content */}
-                    <div className="relative z-10 w-full max-w-3xl mx-auto text-center flex flex-col items-center">
+
+
+                    {/* Hero Content */}
+
+                    <div
+                        className="
+                            relative
+                            z-10
+                            w-full
+                            max-w-3xl
+                            mx-auto
+                            text-center
+                            flex
+                            flex-col
+                            items-center
+                        "
+                    >
+
                         <h1
-                            className="font-display-lg display-lg-mobile md:display-lg text-[var(--on-surface)] mb-6 drop-shadow-sm"
+                            className="
+                                font-display-lg
+                                display-lg-mobile
+                                md:display-lg
+                                text-[var(--on-surface)]
+                                drop-shadow-sm
+                                transition-colors
+                                duration-300
+                            "
+                            style={{
+                                marginBottom: "24px"
+                            }}
                         >
                             Where will your next adventure take you?
                         </h1>
+
+
                         <p
-                            className="font-body-md text-body-md text-[var(--on-surface-variant)] mb-10 max-w-xl"
+                            className="
+                                font-body-md
+                                text-body-md
+                                text-[var(--on-surface-variant)]
+                                max-w-xl
+                                transition-colors
+                                duration-300
+                            "
+                            style={{
+                                marginBottom: "40px"
+                            }}
                         >
-                            Plan your journey, manage your budget, and create unforgettable experiences.
+                            Plan your journey, manage your budget,
+                            and create unforgettable experiences.
                         </p>
-                        <div className="w-full max-w-2xl flex flex-col sm:flex-row items-center gap-4 p-2 glass-card rounded-full shadow-lg">
-                            <div className="flex-grow flex items-center px-4 w-full">
-                                <span className="material-symbols-outlined text-[var(--outline)] mr-3"><Search /></span>
+
+
+                        {/* Search */}
+
+                        <div
+                            className="
+                                w-full
+                                max-w-2xl
+                                flex
+                                flex-col
+                                sm:flex-row
+                                items-center
+                                glass-card
+                                rounded-full
+                                shadow-lg
+                                transition-all
+                                duration-300
+                            "
+                            style={{
+                                padding: "8px",
+                                gap: "16px"
+                            }}
+                        >
+
+                            <div
+                                className="
+                                    flex-grow
+                                    flex
+                                    items-center
+                                    w-full
+                                "
+                                style={{
+                                    padding: "0 16px"
+                                }}
+                            >
+
+                                <Search
+                                    size={20}
+                                    className="
+                                        shrink-0
+                                        text-[var(--on-surface-variant)]
+                                    "
+                                    style={{
+                                        marginRight: "12px"
+                                    }}
+                                />
+
                                 <input
                                     className="
                                         w-full
@@ -70,29 +224,73 @@ function Dashboard() {
                                         border-none
                                         text-[var(--on-surface)]
                                         placeholder:text-[var(--on-surface-variant)]
-                                        py-3
-                                        px-0
                                         outline-none
                                         focus:outline-none
                                         focus:ring-0
-                                        focus:border-none
-                                        focus:shadow-none
                                     "
+                                    style={{
+                                        padding: "12px 0"
+                                    }}
                                     placeholder="Enter your destination..."
                                     type="text"
-                                    />
+                                />
+
                             </div>
-                            <button className="primary-gradient-btn text-white rounded-full px-8 py-4 font-bold tracking-wide hover:scale-105 transition-transform duration-300 w-full sm:w-auto flex-shrink-0 whitespace-nowrap">
+
+
+                            <button
+                                className="
+                                    primary-gradient-btn
+                                    text-white
+                                    rounded-full
+                                    font-bold
+                                    tracking-wide
+                                    hover:scale-105
+                                    transition-transform
+                                    duration-300
+                                    w-full
+                                    sm:w-auto
+                                    flex-shrink-0
+                                    whitespace-nowrap
+                                "
+                                style={{
+                                    padding: "16px 32px"
+                                }}
+                            >
                                 Start Planning
                             </button>
-                        </div>
-                    </div>
-                </section>
-               <section className="dashboard-section">
 
-                    <h2 className="headline-lg text-center">
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                {/* ========================================
+                    QUICK ACTIONS
+                ======================================== */}
+
+                <section
+                    className="
+                        dashboard-section
+                        bg-[var(--background)]
+                        text-[var(--on-background)]
+                        transition-colors
+                        duration-300
+                    "
+                >
+
+                    <h2
+                        className="
+                            headline-lg
+                            text-center
+                            text-[var(--on-surface)]
+                        "
+                    >
                         Quick Actions
                     </h2>
+
 
                     <div className="actions-grid">
 
@@ -129,8 +327,10 @@ function Dashboard() {
                     </div>
 
                 </section>
+
             </main>
-            </Layout>
+
+        </Layout>
         </>
     );
 }

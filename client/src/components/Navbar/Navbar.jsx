@@ -1,13 +1,122 @@
-import { useState } from "react";
-import { Sun, Moon, Bell, ChevronDown } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import {
+    Sun,
+    Moon,
+    Bell,
+    ChevronDown,
+    User,
+    LogOut
+} from "lucide-react";
+
 import { useTheme } from "../../context/ThemeContext";
 import { NAV_LINKS } from "../../constants";
+import { useNavigate, useLocation } from "react-router-dom";
 
 function Navbar() {
+
     const [activeTab, setActiveTab] = useState("Home");
+    const [dropdownOpen, setDropdownOpen] = useState(false);
+
     const { theme, toggleTheme } = useTheme();
 
+    const navigate = useNavigate();
+    const location = useLocation();
+
+    const dropdownRef = useRef(null);
+
+    // ========================================
+    // Get logged-in user
+    // ========================================
+
+    const storedUser =
+        localStorage.getItem("user") ||
+        sessionStorage.getItem("user");
+
+    const user = storedUser
+        ? JSON.parse(storedUser)
+        : null;
+
+    // ========================================
+    // Set active tab based on current route
+    // ========================================
+
+    useEffect(() => {
+
+        const currentLink = NAV_LINKS.find(
+            (link) => link.href === location.pathname
+        );
+
+        if (currentLink) {
+            setActiveTab(currentLink.name);
+        }
+
+    }, [location.pathname]);
+
+    // ========================================
+    // Close dropdown when clicking outside
+    // ========================================
+
+    useEffect(() => {
+
+        const handleClickOutside = (event) => {
+
+            if (
+                dropdownRef.current &&
+                !dropdownRef.current.contains(event.target)
+            ) {
+                setDropdownOpen(false);
+            }
+
+        };
+
+        document.addEventListener(
+            "mousedown",
+            handleClickOutside
+        );
+
+        return () => {
+            document.removeEventListener(
+                "mousedown",
+                handleClickOutside
+            );
+        };
+
+    }, []);
+
+    // ========================================
+    // Profile
+    // ========================================
+
+    const handleProfile = () => {
+
+        setDropdownOpen(false);
+
+        navigate("/profile");
+
+    };
+
+    // ========================================
+    // Logout
+    // ========================================
+
+    const handleLogout = () => {
+
+        // Remove authentication data
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+
+        sessionStorage.removeItem("token");
+        sessionStorage.removeItem("user");
+
+        setDropdownOpen(false);
+
+        // Redirect to login
+        navigate("/login");
+
+    };
+
     return (
+
         <header
             className="
                 fixed
@@ -21,31 +130,92 @@ function Navbar() {
                 justify-between
                 border-b
                 border-[var(--outline-variant)]
-                bg-[var(--glass)]
+                bg-[var(--background)]
                 backdrop-blur-xl
                 shadow-[0_4px_18px_var(--shadow)]
             "
-            style={{ padding: "0 40px" }}
+            style={{
+                padding: "0 40px"
+            }}
         >
-            {/* Logo */}
 
-            <h1
+            {/* ========================================
+                LOGO
+            ======================================== */}
+
+            <div
                 className="
-                    text-[32px]
-                    font-bold
-                    tracking-tight
-                    text-[var(--primary)]
+                    flex
+                    items-center
+                    gap-2
                     cursor-pointer
                     transition-transform
                     duration-200
                     hover:scale-105
                     active:scale-95
                 "
+                onClick={() => navigate("/dashboard")}
             >
-                Navigo
-            </h1>
 
-            {/* Navigation */}
+                <span
+                    className="
+                        w-[34px]
+                        h-[34px]
+                        rounded-full
+                        bg-gradient-to-br
+                        flex
+                        items-center
+                        justify-center
+                        shrink-0
+                        shadow-[0_4px_14px_rgba(0,0,0,0.25)]
+                    "
+                    style={{
+                        background:
+                            "linear-gradient(135deg,#f97316,#ea6a0b)"
+                    }}
+                >
+
+                    <svg
+                        className="w-[17px] h-[17px]"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                    >
+
+                        <circle
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="white"
+                            strokeWidth="1.6"
+                        />
+
+                        <path
+                            d="M15.5 8.5L13 13L8.5 15.5L11 11L15.5 8.5Z"
+                            fill="white"
+                        />
+
+                    </svg>
+
+                </span>
+
+                <h1
+                    className="
+                        text-[32px]
+                        font-bold
+                        tracking-tight
+                        text-[var(--primary)]
+                    "
+                >
+                    Navigo
+                </h1>
+
+            </div>
+
+
+            {/* ========================================
+                NAVIGATION
+            ======================================== */}
 
             <nav
                 className="
@@ -56,11 +226,19 @@ function Navbar() {
                     h-full
                 "
             >
+
                 {NAV_LINKS.map((link) => (
-                    <a
+
+                    <button
                         key={link.name}
-                        href={link.href}
-                        onClick={() => setActiveTab(link.name)}
+                        type="button"
+                        onClick={() => {
+
+                            setActiveTab(link.name);
+
+                            navigate(link.href);
+
+                        }}
                         className={`
                             h-full
                             flex
@@ -68,6 +246,7 @@ function Navbar() {
                             border-b-2
                             transition-all
                             duration-200
+
                             ${
                                 activeTab === link.name
                                     ? "border-[var(--primary)] text-[var(--primary)] font-semibold"
@@ -76,17 +255,29 @@ function Navbar() {
                         `}
                     >
                         {link.name}
-                    </a>
+                    </button>
+
                 ))}
+
             </nav>
 
-            {/* Right Side */}
 
-            <div className="flex items-center gap-4">
+            {/* ========================================
+                RIGHT SIDE
+            ======================================== */}
+
+            <div
+                className="
+                    flex
+                    items-center
+                    gap-4
+                "
+            >
 
                 {/* Theme */}
 
                 <button
+                    type="button"
                     onClick={toggleTheme}
                     className="
                         flex
@@ -103,16 +294,20 @@ function Navbar() {
                         active:scale-95
                     "
                 >
+
                     {theme === "dark" ? (
                         <Sun size={20} />
                     ) : (
                         <Moon size={20} />
                     )}
+
                 </button>
+
 
                 {/* Notification */}
 
                 <button
+                    type="button"
                     className="
                         relative
                         flex
@@ -129,6 +324,7 @@ function Navbar() {
                         active:scale-95
                     "
                 >
+
                     <Bell size={20} />
 
                     <span
@@ -144,48 +340,285 @@ function Navbar() {
                             border-[var(--surface)]
                         "
                     />
+
                 </button>
 
-                {/* Profile */}
 
-                <button
-                    className="
-                        flex
-                        items-center
-                        gap-2
-                        rounded-full
-                        transition-opacity
-                        hover:opacity-90
-                    "
+                {/* ========================================
+                    PROFILE DROPDOWN
+                ======================================== */}
+
+                <div
+                    ref={dropdownRef}
+                    className="relative"
                 >
-                    <div
+
+                    {/* Profile Button */}
+
+                    <button
+                        type="button"
+                        onClick={() =>
+                            setDropdownOpen(!dropdownOpen)
+                        }
                         className="
-                            w-10
-                            h-10
-                            overflow-hidden
+                            flex
+                            items-center
+                            gap-2
                             rounded-full
-                            border
-                            border-[var(--outline)]
-                            bg-[var(--surface-container)]
-                            transition-transform
-                            duration-200
-                            hover:scale-105
+                            transition-opacity
+                            hover:opacity-90
                         "
                     >
-                        <img
-                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuCuwgkNEyprSqgCSZqPXy8SYM-M0pF1UULCQQuSUlc8SgR7BtWzayWAS2eF7VKviMtCFZgQv-hPz5TJfaexJmvHryF7XCP0LrGFQv9aGw_zTr6rEWKN-ge04-OtvNoreljtgawPl_wdaeEf8q93sn2fHG0g5DYwCprPFVB8lPpo2gkKzh_GdXNHtRfydtDyH-soCf26GpatJBuqBU-ZPW2GjqGdgWqyKPG5nmHxclOGZdexwZIh8juAqQ"
-                            alt="Profile"
-                            className="w-full h-full object-cover"
-                        />
-                    </div>
 
-                    <ChevronDown
-                        size={16}
-                        className="text-[var(--on-surface-variant)]"
-                    />
-                </button>
+                        {/* Avatar */}
+
+                        <div
+                            className="
+                                w-10
+                                h-10
+                                overflow-hidden
+                                rounded-full
+                                border
+                                border-[var(--outline)]
+                                bg-[var(--surface-container)]
+                                transition-transform
+                                duration-200
+                                hover:scale-105
+                                flex
+                                items-center
+                                justify-center
+                            "
+                        >
+
+                            {user?.profileImage ? (
+
+                                <img
+                                    src={user.profileImage}
+                                    alt={
+                                        user.fullName ||
+                                        "Profile"
+                                    }
+                                    className="
+                                        w-full
+                                        h-full
+                                        object-cover
+                                    "
+                                />
+
+                            ) : (
+
+                                <span
+                                    className="
+                                        text-[var(--primary)]
+                                        font-bold
+                                        text-sm
+                                    "
+                                >
+                                    {user?.fullName
+                                        ?.charAt(0)
+                                        .toUpperCase() || "U"}
+                                </span>
+
+                            )}
+
+                        </div>
+
+
+                        {/* User Information */}
+
+                        <div
+                            className="
+                                hidden
+                                lg:flex
+                                flex-col
+                                items-start
+                            "
+                        >
+
+                            <span
+                                className="
+                                    text-sm
+                                    font-semibold
+                                    text-[var(--on-surface)]
+                                "
+                            >
+                                {user?.fullName || "Explorer"}
+                            </span>
+
+                            <span
+                                className="
+                                    text-[11px]
+                                    text-[var(--text-secondary)]
+                                "
+                            >
+                                {user?.city && user?.country
+                                    ? `${user.city}, ${user.country}`
+                                    : "Traveler"}
+                            </span>
+
+                        </div>
+
+
+                        {/* Arrow */}
+
+                        <ChevronDown
+                            size={16}
+                            className={`
+                                text-[var(--on-surface-variant)]
+                                transition-transform
+                                duration-200
+                                ${
+                                    dropdownOpen
+                                        ? "rotate-180"
+                                        : ""
+                                }
+                            `}
+                        />
+
+                    </button>
+
+
+                    {/* ========================================
+                        DROPDOWN MENU
+                    ======================================== */}
+
+                    {dropdownOpen && (
+
+                        <div
+                            className="
+                                absolute
+                                right-0
+                                top-full
+                                w-[220px]
+                                rounded-xl
+                                border
+                                border-[var(--outline-variant)]
+                                bg-[var(--surface-container-lowest)]
+                                shadow-[0_12px_35px_var(--shadow)]
+                                z-[100]
+                                overflow-hidden
+                            "
+                            style={{
+                                marginTop: "12px",
+                                padding: "8px"
+                            }}
+                        >
+
+                            {/* User Header */}
+
+                            <div
+                                className="
+                                    border-b
+                                    border-[var(--outline-variant)]
+                                "
+                                style={{
+                                    padding: "10px 12px",
+                                    marginBottom: "6px"
+                                }}
+                            >
+
+                                <p
+                                    className="
+                                        text-sm
+                                        font-semibold
+                                        text-[var(--on-surface)]
+                                        truncate
+                                    "
+                                >
+                                    {user?.fullName || "Explorer"}
+                                </p>
+
+                                <p
+                                    className="
+                                        text-xs
+                                        text-[var(--text-secondary)]
+                                        truncate
+                                    "
+                                    style={{
+                                        marginTop: "3px"
+                                    }}
+                                >
+                                    {user?.email || ""}
+                                </p>
+
+                            </div>
+
+
+                            {/* Profile */}
+
+                            <button
+                                type="button"
+                                onClick={handleProfile}
+                                className="
+                                    w-full
+                                    flex
+                                    items-center
+                                    gap-3
+                                    rounded-lg
+                                    text-sm
+                                    text-[var(--on-surface)]
+                                    hover:bg-[var(--surface-container)]
+                                    transition-colors
+                                    duration-150
+                                "
+                                style={{
+                                    padding: "11px 12px",
+                                    marginBottom: "3px"
+                                }}
+                            >
+
+                                <User
+                                    size={17}
+                                    className="
+                                        text-[var(--on-surface-variant)]
+                                    "
+                                />
+
+                                <span>
+                                    Profile
+                                </span>
+
+                            </button>
+
+
+                            {/* Logout */}
+
+                            <button
+                                type="button"
+                                onClick={handleLogout}
+                                className="
+                                    w-full
+                                    flex
+                                    items-center
+                                    gap-3
+                                    rounded-lg
+                                    text-sm
+                                    text-red-500
+                                    hover:bg-red-500/10
+                                    transition-colors
+                                    duration-150
+                                "
+                                style={{
+                                    padding: "11px 12px"
+                                }}
+                            >
+
+                                <LogOut size={17} />
+
+                                <span>
+                                    Logout
+                                </span>
+
+                            </button>
+
+                        </div>
+
+                    )}
+
+                </div>
 
             </div>
+
         </header>
     );
 }
