@@ -16,6 +16,7 @@ function Navbar() {
 
     const [activeTab, setActiveTab] = useState("Home");
     const [dropdownOpen, setDropdownOpen] = useState(false);
+    const [alertsOpen, setAlertsOpen] = useState(false);
 
     const { theme, toggleTheme } = useTheme();
 
@@ -305,43 +306,112 @@ function Navbar() {
 
 
                 {/* Notification */}
-
-                <button
-                    type="button"
-                    className="
-                        relative
-                        flex
-                        items-center
-                        justify-center
-                        w-10
-                        h-10
-                        rounded-full
-                        transition-all
-                        duration-200
-                        text-[var(--on-surface-variant)]
-                        hover:bg-[var(--surface-container)]
-                        hover:text-[var(--on-surface)]
-                        active:scale-95
-                    "
-                >
-
-                    <Bell size={20} />
-
-                    <span
+                <div className="relative">
+                    <button
+                        type="button"
+                        onClick={() => setAlertsOpen(!alertsOpen)}
                         className="
-                            absolute
-                            top-2
-                            right-2
-                            w-2
-                            h-2
+                            relative
+                            flex
+                            items-center
+                            justify-center
+                            w-10
+                            h-10
                             rounded-full
-                            bg-[var(--primary)]
-                            border-2
-                            border-[var(--surface)]
+                            transition-all
+                            duration-200
+                            text-[var(--on-surface-variant)]
+                            hover:bg-[var(--surface-container)]
+                            hover:text-[var(--on-surface)]
+                            active:scale-95
                         "
-                    />
+                        title="Smart Emergency Alerts"
+                    >
+                        <Bell size={20} />
 
-                </button>
+                        <span
+                            className="
+                                absolute
+                                top-2
+                                right-2
+                                w-2.5
+                                h-2.5
+                                rounded-full
+                                bg-[var(--primary)]
+                                border-2
+                                border-[var(--surface)]
+                                animate-pulse
+                            "
+                        />
+                    </button>
+
+                    {alertsOpen && (
+                        <div
+                            className="
+                                absolute
+                                right-0
+                                mt-3
+                                w-80
+                                sm:w-96
+                                rounded-2xl
+                                border
+                                border-[var(--outline-variant)]
+                                bg-[var(--card-bg)]
+                                text-[var(--text-primary)]
+                                shadow-2xl
+                                z-50
+                                p-4
+                                transition-all
+                                duration-200
+                            "
+                            style={{ background: "var(--card-bg, #1a2636)" }}
+                        >
+                            <div className="flex items-center justify-between border-b border-[var(--divider)] pb-2 mb-3">
+                                <h4 className="font-bold text-sm flex items-center gap-2">
+                                    <span>🚨 Smart Emergency Alerts</span>
+                                </h4>
+                                <span className="text-[11px] px-2 py-0.5 rounded-full bg-[rgba(249,115,22,0.15)] text-[var(--primary)] font-bold">
+                                    3 New
+                                </span>
+                            </div>
+
+                            <div className="space-y-2.5 max-h-72 overflow-y-auto pr-1">
+                                <div
+                                    onClick={() => { setAlertsOpen(false); navigate('/weather'); }}
+                                    className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 cursor-pointer hover:bg-amber-500/15 transition-all text-xs"
+                                >
+                                    <div className="font-bold text-amber-500 flex items-center justify-between mb-1">
+                                        <span>⚠️ Weather Advisory</span>
+                                        <span className="text-[10px] text-opacity-70">Just now</span>
+                                    </div>
+                                    <p className="text-[11.5px] opacity-90">Rain forecast in Goa on Day 2. Pack waterproof jackets & umbrellas!</p>
+                                </div>
+
+                                <div
+                                    onClick={() => { setAlertsOpen(false); navigate('/budget'); }}
+                                    className="p-3 rounded-xl bg-orange-500/10 border border-orange-500/20 cursor-pointer hover:bg-orange-500/15 transition-all text-xs"
+                                >
+                                    <div className="font-bold text-orange-500 flex items-center justify-between mb-1">
+                                        <span>💰 Budget Alert</span>
+                                        <span className="text-[10px] text-opacity-70">1h ago</span>
+                                    </div>
+                                    <p className="text-[11.5px] opacity-90">Trip expenses reaching 75% of target budget. Check budget health meter.</p>
+                                </div>
+
+                                <div
+                                    onClick={() => { setAlertsOpen(false); navigate('/packing-list'); }}
+                                    className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 cursor-pointer hover:bg-blue-500/15 transition-all text-xs"
+                                >
+                                    <div className="font-bold text-blue-400 flex items-center justify-between mb-1">
+                                        <span>📋 Readiness Check</span>
+                                        <span className="text-[10px] text-opacity-70">3h ago</span>
+                                    </div>
+                                    <p className="text-[11.5px] opacity-90">Packing completion is at 45%. Tap to complete essential items.</p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
 
 
                 {/* ========================================

@@ -142,31 +142,55 @@ export const getTripPlaces = async (tripId) => {
 };
 
 export const generateTripItinerary = async (tripId) => {
-
-    const token =
-        localStorage.getItem("token") ||
-        sessionStorage.getItem("token");
-
-    const response = await fetch(
-        `${API_URL}/trips/${tripId}/generate-itinerary`,
-        {
-            method: "POST",
-
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-            },
-        }
-    );
+    const response = await fetch(`${API_URL}/trips/${tripId}/generate-itinerary`, {
+        method: "POST",
+        headers: getHeaders(),
+    });
 
     const data = await response.json();
-
     if (!response.ok) {
-        throw new Error(
-            data.message ||
-            "Failed to generate itinerary"
-        );
+        throw new Error(data.message || "Failed to generate itinerary");
     }
+    return data;
+};
 
+export const createPlace = async (tripId, placeData) => {
+    const response = await fetch(`${API_URL}/trips/${tripId}/places`, {
+        method: "POST",
+        headers: getHeaders(),
+        body: JSON.stringify(placeData),
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+        throw new Error(data.message || "Failed to create place");
+    }
+    return data;
+};
+
+export const updatePlace = async (tripId, placeId, placeData) => {
+    const response = await fetch(`${API_URL}/trips/${tripId}/places/${placeId}`, {
+        method: "PUT",
+        headers: getHeaders(),
+        body: JSON.stringify(placeData),
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+        throw new Error(data.message || "Failed to update place");
+    }
+    return data;
+};
+
+export const deletePlace = async (tripId, placeId) => {
+    const response = await fetch(`${API_URL}/trips/${tripId}/places/${placeId}`, {
+        method: "DELETE",
+        headers: getHeaders(),
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+        throw new Error(data.message || "Failed to delete place");
+    }
     return data;
 };

@@ -8,6 +8,44 @@ const Place = require("../models/Place");
 // POST /api/trips
 // ============================================
 
+function calculateSustainabilityScore(transport, accommodation, travelStyle) {
+    let score = 20;
+    if (transport === "train") score += 35;
+    else if (transport === "car") score += 25;
+    else if (transport === "flight") score += 12;
+
+    if (accommodation === "homestay" || accommodation === "camping") score += 35;
+    else if (accommodation === "hostel") score += 28;
+    else if (accommodation === "hotel") score += 20;
+    else if (accommodation === "resort") score += 10;
+
+    if (travelStyle === "budget") score += 25;
+    else if (travelStyle === "standard") score += 20;
+    else if (travelStyle === "luxury") score += 12;
+
+    return Math.min(100, Math.max(10, score));
+}
+
+function calculateReadinessScore(trip, placeCount = 0) {
+    let score = 30; // base info
+    if (trip.itineraryGenerated || placeCount > 0) score += 30;
+
+    if (trip.packingList && trip.packingList.length > 0) {
+        const checked = trip.packingList.filter((item) => item.checked).length;
+        const packingRatio = checked / trip.packingList.length;
+        score += Math.round(packingRatio * 25);
+    }
+
+    if (trip.budget) score += 15;
+
+    return Math.min(100, score);
+}
+
+// ============================================
+// CREATE TRIP
+// POST /api/trips
+// ============================================
+
 const createTrip = async (req, res) => {
     try {
         const {
@@ -18,7 +56,11 @@ const createTrip = async (req, res) => {
             budget,
             transport,
             accommodation,
+            startDate,
+            endDate,
         } = req.body;
+
+        const sustainabilityScore = calculateSustainabilityScore(transport, accommodation, travelStyle);
 
         const trip = await Trip.create({
             user: req.user._id,
@@ -26,9 +68,13 @@ const createTrip = async (req, res) => {
             travelers,
             duration,
             travelStyle,
-            budget: budget === "" ? null : budget,
+            budget: budget === "" || budget === undefined ? null : Number(budget),
             transport,
             accommodation,
+            startDate: startDate ? new Date(startDate) : null,
+            endDate: endDate ? new Date(endDate) : null,
+            sustainabilityScore,
+            travelReadinessScore: 50,
         });
 
         res.status(201).json({
@@ -106,6 +152,10 @@ const getTripById = async (req, res) => {
             });
         }
 
+        const placeCount = await Place.countDocuments({ trip: id });
+        trip.travelReadinessScore = calculateReadinessScore(trip, placeCount);
+        await trip.save();
+
         res.status(200).json({
             success: true,
             trip,
@@ -146,6 +196,11 @@ const updateTrip = async (req, res) => {
             "budget",
             "transport",
             "accommodation",
+            "startDate",
+            "endDate",
+            "status",
+            "packingList",
+            "expenses",
         ];
 
         const updates = {};
@@ -158,6 +213,14 @@ const updateTrip = async (req, res) => {
                         : req.body[field];
             }
         });
+
+        if (updates.transport || updates.accommodation || updates.travelStyle) {
+            const currentTrip = await Trip.findById(id);
+            const transport = updates.transport || currentTrip.transport;
+            const accommodation = updates.accommodation || currentTrip.accommodation;
+            const travelStyle = updates.travelStyle || currentTrip.travelStyle;
+            updates.sustainabilityScore = calculateSustainabilityScore(transport, accommodation, travelStyle);
+        }
 
         const trip = await Trip.findOneAndUpdate(
             {
@@ -177,6 +240,10 @@ const updateTrip = async (req, res) => {
                 message: "Trip not found",
             });
         }
+
+        const placeCount = await Place.countDocuments({ trip: id });
+        trip.travelReadinessScore = calculateReadinessScore(trip, placeCount);
+        await trip.save();
 
         res.status(200).json({
             success: true,

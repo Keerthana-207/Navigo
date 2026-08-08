@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 
 import Layout from "../../components/Layout/Layout";
-import { getMyTrips } from "../../services/tripApi";
+import { getMyTrips, deleteTrip } from "../../services/tripApi";
 
 function MyTrips() {
     const [trips, setTrips] = useState([]);
@@ -51,12 +51,26 @@ function MyTrips() {
         fetchTrips();
     }, []);
 
+    const handleDeleteTrip = async (tripId) => {
+        if (!window.confirm("Are you sure you want to delete this trip?")) return;
+        try {
+            await deleteTrip(tripId);
+            setTrips((prev) => prev.filter((t) => t._id !== tripId));
+        } catch (err) {
+            alert(err.message || "Failed to delete trip");
+        }
+    };
+
     const getTripStatus = (trip) => {
-        /*
-         * Your current Trip model does not have startDate/endDate.
-         * Therefore, until you add dates to the model, all newly
-         * created trips will be considered upcoming.
-         */
+        if (trip.status) return trip.status;
+        if (trip.startDate && trip.endDate) {
+            const now = new Date();
+            const start = new Date(trip.startDate);
+            const end = new Date(trip.endDate);
+            if (now < start) return "upcoming";
+            if (now >= start && now <= end) return "active";
+            if (now > end) return "completed";
+        }
         return "upcoming";
     };
 

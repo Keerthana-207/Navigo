@@ -354,15 +354,44 @@ const initialExpenses = [
     },
 ];
 
-export default function NavigoBudget() {
-    const [isDark, setIsDark] = useState(true);
+import { getMyTrips } from "../../services/tripApi";
 
+export default function NavigoBudget() {
     const [trip, setTrip] = useState({
         destination: "Goa",
         days: 5,
         travelers: 3,
         style: "Standard Trip",
     });
+
+    useEffect(() => {
+        async function loadActiveTrip() {
+            try {
+                const res = await getMyTrips();
+                if (res.success && res.trips && res.trips.length > 0) {
+                    const latest = res.trips[0];
+                    setTrip({
+                        destination: latest.destination,
+                        days: latest.duration || 5,
+                        travelers: latest.travelers || 2,
+                        style: `${latest.travelStyle || "Standard"} Trip`,
+                    });
+                    if (latest.budget) {
+                        const totalB = Number(latest.budget);
+                        setCategories([
+                            { id: "stay", name: "Lodging", icon: "Bed", allocated: Math.round(totalB * 0.4), spent: 12000, color: "#f97316" },
+                            { id: "food", name: "Food & Dining", icon: "Food", allocated: Math.round(totalB * 0.3), spent: 7500, color: "#3b82f6" },
+                            { id: "travel", name: "Transport", icon: "Plane", allocated: Math.round(totalB * 0.15), spent: 4500, color: "#10b981" },
+                            { id: "activities", name: "Activities", icon: "Activity", allocated: Math.round(totalB * 0.15), spent: 3000, color: "#a855f7" },
+                        ]);
+                    }
+                }
+            } catch (e) {
+                console.error("Budget load trip error:", e);
+            }
+        }
+        loadActiveTrip();
+    }, []);
 
     const [categories, setCategories] =
         useState(initialCategories);

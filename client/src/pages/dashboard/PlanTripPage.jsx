@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { createTrip } from "../../services/tripApi";
 import {TRIP_DURATION_OPTIONS, ACCOMMODATION_OPTIONS, TRANSPORT_OPTIONS, TRAVEL_STYLES} from "../../constants";
 import Layout from "../../components/Layout/Layout";
@@ -153,33 +153,61 @@ function SegButton({ text, data, selected, onClick }) {
 ───────────────────────────────────── */
 
 function PlanTrip() {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const initialDest = searchParams.get("destination") || "";
+
+  const [destination, setDestination] = useState(initialDest);
   const [travelersCount, setTravelersCount] = useState(2);
   const [duration, setDuration] = useState(2);
+  const [startDate, setStartDate] = useState(() => {
+      const d = new Date();
+      return d.toISOString().split("T")[0];
+  });
+  const [endDate, setEndDate] = useState(() => {
+      const d = new Date();
+      d.setDate(d.getDate() + 2);
+      return d.toISOString().split("T")[0];
+  });
+
   const [travelStyle, setTravelStyle] = useState("standard");
   const [transport, setTransport] = useState("flight");
   const [accommodation, setAccommodation] = useState("hotel");
-  const [destination, setDestination] = useState("");
   const [budget, setBudget] = useState("");
-  const navigate = useNavigate();
-const [creatingTrip, setCreatingTrip] = useState(false);
-const [error, setError] = useState("");
+  
+  const [creatingTrip, setCreatingTrip] = useState(false);
+  const [error, setError] = useState("");
+
+  // Live Sustainability Score Preview
+  const sustainabilityScore = (() => {
+      let score = 20;
+      if (transport === "train") score += 35;
+      else if (transport === "car") score += 25;
+      else if (transport === "flight") score += 12;
+
+      if (accommodation === "homestay" || accommodation === "camping") score += 35;
+      else if (accommodation === "hostel") score += 28;
+      else if (accommodation === "hotel") score += 20;
+      else if (accommodation === "resort") score += 10;
+
+      if (travelStyle === "budget") score += 25;
+      else if (travelStyle === "standard") score += 20;
+      else if (travelStyle === "luxury") score += 12;
+
+      return Math.min(100, Math.max(10, score));
+  })();
+
   const styleIcons = {
-    budget: (
-      <PiggyBank size={25}/>
-    ),
-    standard: (
-        <HomeIcon size={25}/> 
-    ),
-    luxury: (
-        <IoDiamondOutline size={25}/>
-    ),
-  }
+    budget: (<PiggyBank size={25}/>),
+    standard: (<HomeIcon size={25}/>),
+    luxury: (<IoDiamondOutline size={25}/>),
+  };
 
   const transportIcons = {
     "flight": (<Plane size={16}/>),
     "train": (<TrainFront size={16}/>),
     "car": (<Car size={16}/>) 
-  }
+  };
 
   const handleContinue = async () => {
     if (!destination.trim()) {
@@ -194,6 +222,8 @@ const [error, setError] = useState("");
         destination: destination.trim(),
         travelers: travelersCount,
         duration,
+        startDate,
+        endDate,
         travelStyle,
         budget: budget === "" ? null : Number(budget),
         transport,
@@ -203,21 +233,11 @@ const [error, setError] = useState("");
     try {
         const data = await createTrip(tripData);
 
-        /*
-            Backend should return:
-
-            {
-                success: true,
-                trip: {...}
-            }
-        */
-
         if (data.success && data.trip) {
             navigate(`/itinerary/${data.trip._id}`);
         }
     } catch (error) {
         console.error("Create Trip Error:", error);
-
         setError(
             error.message ||
             "Unable to create trip. Please try again."
@@ -225,7 +245,7 @@ const [error, setError] = useState("");
     } finally {
         setCreatingTrip(false);
     }
-};
+  };
 
   return (
     <div
@@ -520,7 +540,7 @@ const [error, setError] = useState("");
             </div>
 
             {/* Accommodation */}
-            <div style={{ marginBottom: "0" }}>
+            <div style={{ marginBottom: "22px" }}>
               <label
                 className="block text-[13px] font-bold"
                 style={{ marginBottom: "9px", color: "var(--text-primary)" }}
@@ -546,6 +566,17 @@ const [error, setError] = useState("");
                   />
                 ))}
               </div>
+            </div>
+
+            {/* Sustainability Live Preview */}
+            <div className="flex items-center justify-between p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/25 mt-4 text-xs">
+              <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-semibold">
+                <span>🌿 Sustainability Rating:</span>
+                <span className="font-bold text-sm">{sustainabilityScore}/100</span>
+              </div>
+              <span className="text-[11px] text-[var(--text-secondary-plan)] font-medium">
+                {sustainabilityScore > 70 ? "Eco-Friendly Choice!" : "Standard Footprint"}
+              </span>
             </div>
 
             {error && (

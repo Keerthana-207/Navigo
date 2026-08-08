@@ -61,8 +61,59 @@ const tripSchema = new mongoose.Schema(
                 "hotel",
                 "hostel",
                 "resort",
+                "homestay",
+                "camping"
             ],
         },
+
+        startDate: {
+            type: Date,
+            default: null,
+        },
+
+        endDate: {
+            type: Date,
+            default: null,
+        },
+
+        status: {
+            type: String,
+            enum: ["upcoming", "active", "completed"],
+            default: "upcoming",
+        },
+
+        sustainabilityScore: {
+            type: Number,
+            default: 75,
+            min: 0,
+            max: 100,
+        },
+
+        travelReadinessScore: {
+            type: Number,
+            default: 60,
+            min: 0,
+            max: 100,
+        },
+
+        packingList: [
+            {
+                id: String,
+                category: String,
+                name: String,
+                checked: { type: Boolean, default: false }
+            }
+        ],
+
+        expenses: [
+            {
+                id: String,
+                title: String,
+                amount: Number,
+                category: String,
+                date: String
+            }
+        ],
 
         itineraryGenerated: {
             type: Boolean,

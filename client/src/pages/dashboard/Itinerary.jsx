@@ -523,6 +523,27 @@ const onAssignToDay = (placeId, day, period) => {
     w.document.close();
   }
 
+  async function handleRegenerateAI() {
+    if (!tripId) return;
+    try {
+      setLoading(true);
+      const generated = await generateTripItinerary(tripId);
+      if (generated.success && generated.places) {
+        const newPlaces = generated.places.map((place) => ({
+          ...place,
+          id: place._id || place.id,
+          estCost: place.estimatedCost,
+        }));
+        setPlaces(newPlaces);
+        savedSnapshotRef.current = JSON.stringify(newPlaces);
+      }
+    } catch (err) {
+      alert(err.message || "Failed to regenerate itinerary");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   /* ---------- derived: hero progress ---------- */
   const totalCount = places.length;
   const visitedCount = places.filter((p) => p.status === "visited").length;
