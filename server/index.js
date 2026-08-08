@@ -6,15 +6,13 @@ const rateLimit = require("express-rate-limit");
 
 const connectDB = require("./config/db.js");
 const authRoutes = require("./routes/authRoutes.js");
+const tripRoutes = require("./routes/tripRoutes");
+const placeRoutes = require("./routes/placeRoutes");
 
 dotenv.config();
 
 const app = express();
 
-
-// ========================================
-// Middleware
-// ========================================
 
 app.use(helmet());
 
@@ -28,11 +26,6 @@ app.use(
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-
-// ========================================
-// Rate Limiting
-// ========================================
-
 const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 100,
@@ -45,10 +38,6 @@ const authLimiter = rateLimit({
 });
 
 
-// ========================================
-// Routes
-// ========================================
-
 app.get("/", (req, res) => {
     res.status(200).json({
         success: true,
@@ -57,6 +46,8 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/auth", authLimiter, authRoutes);
+app.use("/api/trips", tripRoutes);
+app.use('/api', placeRoutes)
 
 
 // ========================================

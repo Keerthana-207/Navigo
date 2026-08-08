@@ -1,9 +1,9 @@
-import Navbar from "../../components/Navbar/Navbar";
 import { Search, PlusCircle, Wallet, PlaneTakeoff, Heart, Backpack } from "lucide-react";
 import '../css/Dashboard.css'
-import Footer from "../../components/Footer/Footer";
 import Layout from "../../components/Layout/Layout";
-import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { getMyTrips } from "../../services/tripApi";
 
 function ActionCard({
     icon,
@@ -31,6 +31,8 @@ function ActionCard({
 }
 
 function Dashboard() {
+    const navigate = useNavigate();
+    
     const [user] = useState(() => {
         const storedUser =
             localStorage.getItem("user") ||
@@ -40,6 +42,30 @@ function Dashboard() {
             ? JSON.parse(storedUser)
             : null;
     });
+
+    const [trips, setTrips] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        async function loadTrips() {
+            try {
+                const data = await getMyTrips();
+
+                if (data.success) {
+                    setTrips(data.trips);
+                }
+            } catch (error) {
+                console.error(
+                    "Failed to load trips:",
+                    error
+                );
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        loadTrips();
+    }, []);
     return (
         <>
             <Layout>
@@ -298,6 +324,7 @@ function Dashboard() {
                             icon={<PlusCircle />}
                             title="New Trip"
                             description="Start a blank canvas."
+                            onClick={() => navigate('/plan-trip')}
                         />
 
                         <ActionCard

@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { createTrip } from "../../services/tripApi";
 import {TRIP_DURATION_OPTIONS, ACCOMMODATION_OPTIONS, TRANSPORT_OPTIONS, TRAVEL_STYLES} from "../../constants";
 import Layout from "../../components/Layout/Layout";
 import { MapPin, PiggyBank, HomeIcon, Plane, TrainFront, Car } from "lucide-react";
@@ -158,7 +160,9 @@ function PlanTrip() {
   const [accommodation, setAccommodation] = useState("hotel");
   const [destination, setDestination] = useState("");
   const [budget, setBudget] = useState("");
-
+  const navigate = useNavigate();
+const [creatingTrip, setCreatingTrip] = useState(false);
+const [error, setError] = useState("");
   const styleIcons = {
     budget: (
       <PiggyBank size={25}/>
@@ -177,19 +181,51 @@ function PlanTrip() {
     "car": (<Car size={16}/>) 
   }
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
+    if (!destination.trim()) {
+        setError("Please enter a destination.");
+        return;
+    }
+
+    setError("");
+    setCreatingTrip(true);
+
     const tripData = {
-      destination,
-      travelers: travelersCount,
-      duration,
-      travelStyle,
-      budget,
-      transport,
-      accommodation,
+        destination: destination.trim(),
+        travelers: travelersCount,
+        duration,
+        travelStyle,
+        budget: budget === "" ? null : Number(budget),
+        transport,
+        accommodation,
     };
-    console.log("Trip Data:", tripData);
-    // TODO: navigate to itinerary page with tripData
-  };
+
+    try {
+        const data = await createTrip(tripData);
+
+        /*
+            Backend should return:
+
+            {
+                success: true,
+                trip: {...}
+            }
+        */
+
+        if (data.success && data.trip) {
+            navigate(`/itinerary/${data.trip._id}`);
+        }
+    } catch (error) {
+        console.error("Create Trip Error:", error);
+
+        setError(
+            error.message ||
+            "Unable to create trip. Please try again."
+        );
+    } finally {
+        setCreatingTrip(false);
+    }
+};
 
   return (
     <div
@@ -512,25 +548,61 @@ function PlanTrip() {
               </div>
             </div>
 
+            {error && (
+                <p
+                    role="alert"
+                    style={{
+                        marginTop: "18px",
+                        marginBottom: "0",
+                        padding: "10px 12px",
+                        borderRadius: "10px",
+                        background: "rgba(239,68,68,0.10)",
+                        border: "1px solid rgba(239,68,68,0.25)",
+                        color: "#ef4444",
+                        fontSize: "13px",
+                        fontWeight: "600",
+                    }}
+                >
+                    {error}
+                </p>
+            )}
+
             {/* CTA */}
             <button
+              type="button"
               onClick={handleContinue}
+              disabled={creatingTrip}
               className="
-                w-full border-0 rounded-[14px] cursor-pointer
-                text-base font-bold tracking-[0.01em] text-white
-                transition-all duration-150
-                hover:brightness-110 hover:-translate-y-[1px]
-                active:translate-y-0 active:scale-[0.99]
+                  w-full
+                  border-0
+                  rounded-[14px]
+                  cursor-pointer
+                  text-base
+                  font-bold
+                  tracking-[0.01em]
+                  text-white
+                  transition-all
+                  duration-150
+                  hover:brightness-110
+                  hover:-translate-y-[1px]
+                  active:translate-y-0
+                  active:scale-[0.99]
+                  disabled:opacity-60
+                  disabled:cursor-not-allowed
               "
               style={{
-                marginTop: "28px",
-                padding: "17px",
-                background: "linear-gradient(135deg,#f97316,#ea580c)",
-                boxShadow: "0 12px 28px -10px rgba(249,115,22,0.55)",
+                  marginTop: "28px",
+                  padding: "17px",
+                  background:
+                      "linear-gradient(135deg,#f97316,#ea580c)",
+                  boxShadow:
+                      "0 12px 28px -10px rgba(249,115,22,0.55)",
               }}
-            >
-              Continue to Itinerary
-            </button>
+          >
+              {creatingTrip
+                  ? "Creating Trip..."
+                  : "Continue to Itinerary"}
+          </button>
           </div>
         </div>
       </div>

@@ -1,4 +1,5 @@
-import React, { useState, useRef, useMemo } from "react";
+import React, { useState, useRef, useMemo, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import {PlusIcon, SearchIcon, ChevronLeftIcon, DownloadIcon} from "lucide-react";
 import Layout from "../../components/Layout/Layout";
 import FilterTabs from "../../components/Itinerary/FilterTabs.jsx";
@@ -8,6 +9,7 @@ import Schedule from "../../components/Itinerary/Schedule";
 import ItineraryHero from "../../components/Itinerary/ItineraryHero";
 import ItineraryFooter from "../../components/Itinerary/ItineraryFooter";
 import CategoryProgress from "../../components/Itinerary/CategoryProgress";
+import { getTripById } from "../../services/tripApi.js";
 
 const CATEGORIES = ["Beach", "Restaurant", "Shopping", "Adventure", "Historical"];
 const FILTERS = ["All", "Beaches", "Restaurants", "Shopping", "Adventure", "Historical", "Planned", "Unplanned", "Visited", "Favorites"];
@@ -318,7 +320,6 @@ function PeriodTags({
 
 function ItineraryPlanner() {
   const [theme, setTheme] = useState("dark");
-  const [trip] = useState(INITIAL_TRIP);
   const [places, setPlaces] = useState(INITIAL_PLACES);
   const [activeFilter, setActiveFilter] = useState("All");
   const [search, setSearch] = useState("");
@@ -328,6 +329,10 @@ function ItineraryPlanner() {
   const [draggingId, setDraggingId] = useState(null);
   const [dragOverKey, setDragOverKey] = useState(null);
 
+  const { tripId } = useParams();
+  const [trip, setTrip] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const savedSnapshotRef = useRef(JSON.stringify(INITIAL_PLACES));
   const nextIdRef = useRef(7);
 
@@ -534,7 +539,75 @@ function ItineraryPlanner() {
       if (!isNaN(id)) assignToDay(id, day);
     };
   }
+  useEffect(() => {
+    async function loadTrip() {
+        try {
+            setLoading(true);
+            setError("");
 
+            const data = await getTripById(tripId);
+
+            if (data.success) {
+                setTrip(data.trip);
+            }
+        } catch (error) {
+            console.error("Load Trip Error:", error);
+
+            setError(
+                error.message ||
+                "Failed to load itinerary."
+            );
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    if (tripId) {
+        loadTrip();
+    }
+}, [tripId]);
+
+if (error || !trip) {
+    return (
+        <Layout>
+            <div
+                className="
+                    min-h-screen
+                    flex
+                    items-center
+                    justify-center
+                    bg-[var(--background)]
+                    text-[var(--text)]
+                "
+            >
+                <div
+                    className="
+                        text-center
+                        max-w-[400px]
+                    "
+                >
+                    <h2
+                        className="text-xl font-bold"
+                        style={{
+                            marginBottom: "8px"
+                        }}
+                    >
+                        Unable to Load Trip
+                    </h2>
+
+                    <p
+                        className="
+                            text-sm
+                            text-[var(--text-dim)]
+                        "
+                    >
+                        {error || "Trip not found."}
+                    </p>
+                </div>
+            </div>
+        </Layout>
+    );
+}
   return (
     <>
     <Layout>

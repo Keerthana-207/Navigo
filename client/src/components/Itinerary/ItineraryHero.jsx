@@ -59,7 +59,7 @@ function ItineraryHero({ trip, places }) {
                         margin: "0 0 10px 0"
                     }}
                 >
-                    {trip.name}
+                    {trip.destination}
                 </h1>
 
                 <div
@@ -73,18 +73,17 @@ function ItineraryHero({ trip, places }) {
                         gap: "18px"
                     }}
                 >
-                    <span>
-                        📅 {trip.days} Days
-                    </span>
+                    <span>📅 {trip.duration} Days</span>
 
                     <span>
                         👥 {trip.travelers} Travelers
                     </span>
 
-                    <span>
-                        💳 Budget{" "}
-                        {fmtMoney(trip.budget)}
-                    </span>
+                    {trip.budget !== null && (
+                        <span>
+                            💳 Budget {fmtMoney(trip.budget)}
+                        </span>
+                    )}
                 </div>
             </div>
 
