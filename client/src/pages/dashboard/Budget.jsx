@@ -618,7 +618,7 @@ export default function NavigoBudget() {
             ===================================================== */}
 
             <main
-                className="max-w-[1300px] mx-auto"
+                className="w-full mx-auto"
                 style={{
                     padding:
                         "32px 48px 48px",
