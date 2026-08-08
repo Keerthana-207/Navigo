@@ -976,7 +976,7 @@ function CreateAccount() {
                                     Already have an account?
 
                                     <a
-                                        href="/login"
+                                        onClick={() => navigate("/login")}
                                         className="
                                             ml-1
                                             font-bold

@@ -774,7 +774,7 @@ function Login() {
                                 Don't have an account?
 
                                 <a
-                                    href="/register"
+                                    onClick={() => navigate('/register')}
                                     className="
                                         ml-1
                                         font-bold
