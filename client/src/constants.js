@@ -135,3 +135,51 @@ export const TRAVEL_STYLES = [
         icon: "luxury"
     }
 ];
+
+// Itinerary
+export const CATEGORIES = [
+    "Beach",
+    "Restaurant",
+    "Shopping",
+    "Adventure",
+    "Historical"
+];
+
+export const FILTERS = [
+    "All",
+    "Beaches",
+    "Restaurants",
+    "Shopping",
+    "Adventure",
+    "Historical",
+    "Planned",
+    "Unplanned",
+    "Visited",
+    "Favorites"
+];
+
+export const FILTER_CATEGORY_MAP = {
+    Beaches: "Beach",
+    Restaurants: "Restaurant",
+    Shopping: "Shopping",
+    Adventure: "Adventure",
+    Historical: "Historical"
+};
+
+export const PERIOD_ORDER = [
+    "Morning",
+    "Afternoon",
+    "Evening",
+    "Unscheduled"
+];
+
+export const INITIAL_TRIP = {
+    name: "Goa Trip",
+    days: 5,
+    travelers: 3,
+    budget: 60000
+};
+
+export const INITIAL_PLACES = [
+    // your existing INITIAL_PLACES here
+];
