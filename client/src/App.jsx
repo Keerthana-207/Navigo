@@ -3,7 +3,6 @@ import './App.css'
 import { Routes, Route } from 'react-router-dom'
 import Dashboard from './pages/dashboard/Dashboard'
 import PlanTrip from './pages/dashboard/PlanTripPage'
-import BudgetPage from './pages/dashboard/BudgetPage'
 import Budget from './pages/dashboard/Budget'
 import CreateAccount from './pages/dashboard/Register'
 import Login from './pages/dashboard/NavigoLogin'
@@ -11,6 +10,7 @@ import LandingPage from './pages/public/LandingPage'
 import ItineraryPlanner from './pages/dashboard/Itinerary'
 import MyTrips from './pages/dashboard/MyTrips'
 import Profile from './pages/dashboard/Profile'
+import PackingChecklist from './pages/dashboard/PackingChecklist'
 
 
 
@@ -26,7 +26,7 @@ function App() {
       <Route path='/login' element={<Login />} />
       <Route path="/itinerary/:tripId" element={<ItineraryPlanner />} />
       <Route path='/profile' element={<Profile />} />
-
+      <Route path='/packing-list' element={<PackingChecklist />} />
       <Route path='/my-trips' element={<MyTrips />} />
     </Routes>
     </>
