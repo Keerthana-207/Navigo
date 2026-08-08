@@ -1,6 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
-    Bell,
     UserCircle,
     MapPin,
     Edit3,
@@ -9,10 +8,16 @@ import {
     Compass,
     Shield,
     Trash2,
+    Camera,
+    X,
+    Check,
 } from "lucide-react";
 
 import Layout from "../../components/Layout/Layout";
-import { getProfile } from "../../services/userApi";
+import {
+    getProfile,
+    updateProfile,
+} from "../../services/userApi";
 import { getMyTrips } from "../../services/tripApi";
 
 const defaultUser = {
@@ -20,6 +25,8 @@ const defaultUser = {
     email: "",
     phone: "",
     location: "",
+    city: "",
+    country: "",
     memberSince: "",
     profileImage: "",
     preferences: [],
@@ -41,128 +48,146 @@ const pageStyle = {
     padding: "48px 40px",
 };
 
-const footerStyle = {
-    padding: "48px 40px 28px",
-};
-
 function Profile() {
     const [user, setUser] = useState(defaultUser);
     const [trips, setTrips] = useState([]);
+
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [success, setSuccess] = useState("");
+
     const [twoFactor, setTwoFactor] = useState(false);
 
-    /*
-    |--------------------------------------------------------------------------
-    | Load User Profile
-    |--------------------------------------------------------------------------
-    */
+    const [editingProfile, setEditingProfile] =
+        useState(false);
+
+    const [savingProfile, setSavingProfile] =
+        useState(false);
+
+    const [profileMessage, setProfileMessage] =
+    useState("");
+
+    const [editForm, setEditForm] = useState({
+        fullName: "",
+        email: "",
+        phoneNumber: "",
+        city: "",
+        country: "",
+    });
+
+    const fileInputRef = useRef(null);
 
     useEffect(() => {
-    async function loadProfile() {
-        try {
-            setLoading(true);
-            setError("");
+        async function loadProfile() {
+            try {
+                setLoading(true);
+                setError("");
 
-            const response = await getProfile();
+                const response = await getProfile();
 
-            /*
-             * Your backend getProfile controller should return
-             * the user object, usually in one of these formats:
-             *
-             * { success: true, user: {...} }
-             * { user: {...} }
-             * {...user fields...}
-             */
+                const backendUser =
+                    response?.user ||
+                    response?.data?.user ||
+                    response?.data ||
+                    response;
 
-            const backendUser =
-                response?.user ||
-                response?.data?.user ||
-                response?.data ||
-                response;
+                if (
+                    !backendUser ||
+                    typeof backendUser !== "object"
+                ) {
+                    throw new Error(
+                        "Invalid profile data received from server."
+                    );
+                }
 
-            if (
-                !backendUser ||
-                typeof backendUser !== "object"
-            ) {
-                throw new Error(
-                    "Invalid profile data received from server."
+                const updatedUser = {
+    ...defaultUser,
+
+    name: backendUser.fullName || "",
+
+    email: backendUser.email || "",
+
+    phone: backendUser.phoneNumber || "",
+
+    location: [
+        backendUser.city,
+        backendUser.country,
+    ]
+        .filter(Boolean)
+        .join(", "),
+
+    memberSince: backendUser.createdAt
+        ? new Date(
+              backendUser.createdAt
+          ).toLocaleDateString("en-US", {
+              month: "short",
+              year: "numeric",
+          })
+        : "",
+
+    profileImage:
+        backendUser.profileImage || "",
+
+    preferences: [],
+
+    countriesVisited: 0,
+
+    travelMiles: 0,
+
+    googleConnected: false,
+
+    appleConnected: false,
+};
+
+setUser(updatedUser);
+
+setEditForm({
+    fullName: backendUser.fullName || "",
+    email: backendUser.email || "",
+    phoneNumber:
+        backendUser.phoneNumber || "",
+    city: backendUser.city || "",
+    country: backendUser.country || "",
+});
+
+                setUser(updatedUser);
+
+                setEditForm({
+                    fullName:
+                        updatedUser.name,
+                    email:
+                        updatedUser.email,
+                    phoneNumber:
+                        updatedUser.phone,
+                    city:
+                        updatedUser.city,
+                    country:
+                        updatedUser.country,
+                });
+
+                localStorage.setItem(
+                    "user",
+                    JSON.stringify(
+                        updatedUser
+                    )
                 );
+            } catch (err) {
+                console.error(
+                    "Failed to load profile:",
+                    err
+                );
+
+                setError(
+                    err?.message ||
+                        "Failed to load profile information."
+                );
+            } finally {
+                setLoading(false);
             }
-
-            /*
-             * Map the ACTUAL User.js fields
-             * to the fields already used by the UI.
-             */
-            const updatedUser = {
-                ...defaultUser,
-
-                name: backendUser.fullName || "",
-
-                email: backendUser.email || "",
-
-                phone: backendUser.phoneNumber || "",
-
-                location: [
-                    backendUser.city,
-                    backendUser.country,
-                ]
-                    .filter(Boolean)
-                    .join(", "),
-
-                memberSince: backendUser.createdAt
-                    ? new Date(
-                          backendUser.createdAt
-                      ).toLocaleDateString("en-US", {
-                          month: "short",
-                          year: "numeric",
-                      })
-                    : "",
-
-                profileImage:
-                    backendUser.profileImage || "",
-
-                /*
-                 * These fields currently do not exist
-                 * in your User.js schema.
-                 */
-                preferences: [],
-
-                countriesVisited: 0,
-
-                travelMiles: 0,
-
-                googleConnected: false,
-
-                appleConnected: false,
-            };
-
-            setUser(updatedUser);
-
-            /*
-             * Store the latest profile locally.
-             */
-            localStorage.setItem(
-                "user",
-                JSON.stringify(updatedUser)
-            );
-        } catch (err) {
-            console.error(
-                "Failed to load profile:",
-                err
-            );
-
-            setError(
-                err?.message ||
-                    "Failed to load profile information."
-            );
-        } finally {
-            setLoading(false);
         }
-    }
 
-    loadProfile();
-}, []);
+        loadProfile();
+    }, []);
 
     /*
     |--------------------------------------------------------------------------
@@ -173,15 +198,22 @@ function Profile() {
     useEffect(() => {
         async function loadTrips() {
             try {
-                const data = await getMyTrips();
+                const data =
+                    await getMyTrips();
 
                 if (data?.success) {
-                    setTrips(data.trips || []);
+                    setTrips(
+                        data.trips || []
+                    );
                 } else if (
-                    Array.isArray(data?.trips)
+                    Array.isArray(
+                        data?.trips
+                    )
                 ) {
                     setTrips(data.trips);
-                } else if (Array.isArray(data)) {
+                } else if (
+                    Array.isArray(data)
+                ) {
                     setTrips(data);
                 }
             } catch (error) {
@@ -195,21 +227,265 @@ function Profile() {
         loadTrips();
     }, []);
 
+    const getInitials = (value) => {
+    if (!value) return "U";
+
+    return value
+        .trim()
+        .split(/\s+/)
+        .slice(0, 2)
+        .map((word) =>
+            word.charAt(0).toUpperCase()
+        )
+        .join("");
+};
+
     /*
     |--------------------------------------------------------------------------
-    | User Data
+    | Edit Form
     |--------------------------------------------------------------------------
     */
 
-    const {
-        name,
-        email,
-        phone,
-        location,
-        memberSince,
-        profileImage,
-        preferences = [],
-    } = user;
+    const handleEditChange = (field, value) => {
+        setEditForm((prev) => ({
+            ...prev,
+            [field]: value,
+        }));
+    };
+
+    /*
+    |--------------------------------------------------------------------------
+    | Start Editing
+    |--------------------------------------------------------------------------
+    */
+
+    const handleStartEditing = () => {
+        setEditForm({
+            fullName: user.name || "",
+            email: user.email || "",
+            phoneNumber: user.phone || "",
+            city: user.city || "",
+            country: user.country || "",
+        });
+
+        setEditingProfile(true);
+        setError("");
+        setSuccess("");
+    };
+
+    /*
+    |--------------------------------------------------------------------------
+    | Cancel Editing
+    |--------------------------------------------------------------------------
+    */
+
+    const handleCancelEditing = () => {
+        setEditForm({
+            fullName: user.name || "",
+            email: user.email || "",
+            phoneNumber: user.phone || "",
+            city: user.city || "",
+            country: user.country || "",
+        });
+
+        setEditingProfile(false);
+        setError("");
+    };
+
+    /*
+    |--------------------------------------------------------------------------
+    | Save Profile
+    |--------------------------------------------------------------------------
+    */
+
+    const handleSaveProfile = async () => {
+        if (!editForm.fullName.trim()) {
+            setError("Full name is required.");
+            return;
+        }
+
+        if (!editForm.email.trim()) {
+            setError("Email address is required.");
+            return;
+        }
+
+        try {
+            setSavingProfile(true);
+            setError("");
+            setSuccess("");
+
+            const payload = {
+                fullName:
+                    editForm.fullName.trim(),
+
+                email:
+                    editForm.email.trim(),
+
+                phoneNumber:
+                    editForm.phoneNumber.trim(),
+
+                city:
+                    editForm.city.trim(),
+
+                country:
+                    editForm.country.trim(),
+            };
+
+            const response =
+                await updateProfile(payload);
+
+            const backendUser =
+                response?.user ||
+                response?.data?.user ||
+                response?.data ||
+                response;
+
+            const updatedUser = {
+                ...user,
+
+                name:
+                    backendUser?.fullName ??
+                    payload.fullName,
+
+                email:
+                    backendUser?.email ??
+                    payload.email,
+
+                phone:
+                    backendUser?.phoneNumber ??
+                    payload.phoneNumber,
+
+                city:
+                    backendUser?.city ??
+                    payload.city,
+
+                country:
+                    backendUser?.country ??
+                    payload.country,
+
+                location: [
+                    backendUser?.city ??
+                        payload.city,
+
+                    backendUser?.country ??
+                        payload.country,
+                ]
+                    .filter(Boolean)
+                    .join(", "),
+
+                profileImage:
+                    backendUser?.profileImage ??
+                    user.profileImage,
+            };
+
+            setUser(updatedUser);
+
+            setEditForm({
+                fullName:
+                    updatedUser.name,
+                email:
+                    updatedUser.email,
+                phoneNumber:
+                    updatedUser.phone,
+                city:
+                    updatedUser.city,
+                country:
+                    updatedUser.country,
+            });
+
+            localStorage.setItem(
+                "user",
+                JSON.stringify(
+                    updatedUser
+                )
+            );
+
+            setEditingProfile(false);
+            setSuccess(
+                "Profile updated successfully."
+            );
+
+            setTimeout(() => {
+                setSuccess("");
+            }, 3000);
+        } catch (err) {
+            console.error(
+                "Failed to update profile:",
+                err
+            );
+
+            setError(
+                err?.message ||
+                    "Failed to update profile."
+            );
+        } finally {
+            setSavingProfile(false);
+        }
+    };
+
+    /*
+    |--------------------------------------------------------------------------
+    | Profile Image
+    |--------------------------------------------------------------------------
+    */
+
+    const handleEditChangeImageClick = () => {
+        fileInputRef.current?.click();
+    };
+
+    const handleEditChangeImageChange = async (
+        event
+    ) => {
+        const file =
+            event.target.files?.[0];
+
+        if (!file) return;
+
+        if (!file.type.startsWith("image/")) {
+            setError(
+                "Please select a valid image file."
+            );
+            return;
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+            setError(
+                "Profile image must be smaller than 5MB."
+            );
+            return;
+        }
+
+        /*
+         * Local preview.
+         *
+         * This immediately changes the UI.
+         * For permanent storage, your backend
+         * should accept the uploaded image.
+         */
+
+        const imageUrl =
+            URL.createObjectURL(file);
+
+        setUser((prev) => ({
+            ...prev,
+            profileImage: imageUrl,
+        }));
+
+        setSuccess(
+            "Profile image selected."
+        );
+
+        /*
+         * If your backend supports image
+         * uploads, send `file` using FormData here.
+         *
+         * Example:
+         *
+         * const formData = new FormData();
+         * formData.append("profileImage", file);
+         * await updateProfile(formData);
+         */
+    };
 
     /*
     |--------------------------------------------------------------------------
@@ -289,12 +565,22 @@ function Profile() {
         );
     }
 
+    const {
+        name,
+        email,
+        phone,
+        location,
+        memberSince,
+        profileImage,
+        preferences = [],
+    } = user;
+
     return (
         <Layout>
             <div
                 className="
                     min-h-screen
-                    bg-[var(--bg)]
+                    bg-[var(--background)]
                     text-[var(--text-primary)]
                     transition-colors
                     duration-300
@@ -304,9 +590,7 @@ function Profile() {
                         "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
                 }}
             >
-                {/* =====================================================
-                    ERROR MESSAGE
-                ===================================================== */}
+                {/* ERROR */}
 
                 {error && (
                     <div
@@ -330,9 +614,29 @@ function Profile() {
                     </div>
                 )}
 
-                {/* =====================================================
-                    MAIN
-                ===================================================== */}
+                {/* SUCCESS */}
+
+                {success && (
+                    <div
+                        className="
+                            mx-auto
+                            max-w-[1450px]
+                            rounded-xl
+                            border
+                            border-[var(--primary)]/20
+                            bg-[var(--primary)]/10
+                            text-[var(--primary)]
+                        "
+                        style={{
+                            marginTop: "32px",
+                            marginLeft: "40px",
+                            marginRight: "40px",
+                            padding: "14px 18px",
+                        }}
+                    >
+                        {success}
+                    </div>
+                )}
 
                 <main
                     className="
@@ -362,35 +666,59 @@ function Profile() {
                             marginTop: "32px",
                         }}
                     >
-                        {/* Profile Image */}
+                        {/* PROFILE IMAGE */}
 
                         <div className="relative group">
-                            <img
-                                src={
-                                    profileImage ||
-                                    "/default-avatar.png"
-                                }
-                                alt={
-                                    name ||
-                                    "Profile"
-                                }
-                                className="
-                                    w-32
-                                    h-32
-                                    md:w-40
-                                    md:h-40
-                                    rounded-full
-                                    object-cover
-                                    border-4
-                                    border-[var(--surface-variant)]
-                                    shadow-lg
-                                    transition-transform
-                                    duration-300
-                                    group-hover:scale-105
-                                "
-                            />
+                            {profileImage ? (
+                                <img
+                                    src={profileImage}
+                                    alt={name || "Profile"}
+                                    className="
+                                        w-32
+                                        h-32
+                                        md:w-40
+                                        md:h-40
+                                        rounded-full
+                                        object-cover
+                                        border-4
+                                        border-[var(--surface-variant)]
+                                        shadow-lg
+                                        transition-transform
+                                        duration-300
+                                        group-hover:scale-105
+                                    "
+                                />
+                            ) : (
+                                <div
+                                    className="
+                                        w-32
+                                        h-32
+                                        md:w-40
+                                        md:h-40
+                                        rounded-full
+                                        flex
+                                        items-center
+                                        justify-center
+                                        border-4
+                                        border-[var(--surface-variant)]
+                                        shadow-lg
+                                        bg-[var(--primary)]
+                                        text-white
+                                        text-4xl
+                                        md:text-5xl
+                                        font-bold
+                                        uppercase
+                                        transition-transform
+                                        duration-300
+                                        group-hover:scale-105
+                                    "
+                                >
+                                    {getInitials(name)}
+                                </div>
+                            )}
 
                             <button
+                                type="button"
                                 className="
                                     absolute
                                     bottom-0
@@ -413,7 +741,7 @@ function Profile() {
                             </button>
                         </div>
 
-                        {/* User Information */}
+                        {/* USER INFORMATION */}
 
                         <div
                             className="
@@ -440,7 +768,8 @@ function Profile() {
                                     margin: 0,
                                 }}
                             >
-                                {name || "Your Name"}
+                                {name ||
+                                    "Your Name"}
                             </h1>
 
                             {location && (
@@ -452,10 +781,14 @@ function Profile() {
                                         text-[var(--text-secondary-plan)]
                                     "
                                 >
-                                    <MapPin size={16} />
+                                    <MapPin
+                                        size={16}
+                                    />
 
                                     <span>
-                                        {location}
+                                        {
+                                            location
+                                        }
                                     </span>
                                 </div>
                             )}
@@ -516,7 +849,9 @@ function Profile() {
                                         duration-300
                                         hover:-translate-y-1
                                     "
-                                    style={cardStyle}
+                                    style={
+                                        cardStyle
+                                    }
                                 >
                                     <div
                                         className="
@@ -530,7 +865,11 @@ function Profile() {
                                                 "8px",
                                         }}
                                     >
-                                        <Icon size={20} />
+                                        <Icon
+                                            size={
+                                                20
+                                            }
+                                        />
 
                                         <span
                                             className="
@@ -540,7 +879,9 @@ function Profile() {
                                                 font-medium
                                             "
                                         >
-                                            {label}
+                                            {
+                                                label
+                                            }
                                         </span>
                                     </div>
 
@@ -551,7 +892,9 @@ function Profile() {
                                             text-[var(--text-primary)]
                                         "
                                     >
-                                        {value}
+                                        {
+                                            value
+                                        }
                                     </div>
                                 </div>
                             )
@@ -559,7 +902,7 @@ function Profile() {
                     </section>
 
                     {/* =================================================
-                        TWO COLUMN LAYOUT
+                        TWO COLUMN
                     ================================================= */}
 
                     <section
@@ -570,9 +913,7 @@ function Profile() {
                             gap-8
                         "
                     >
-                        {/* =================================================
-                            LEFT COLUMN
-                        ================================================= */}
+                        {/* LEFT */}
 
                         <div
                             className="
@@ -599,10 +940,6 @@ function Profile() {
                                         justify-between
                                         items-center
                                     "
-                                    style={{
-                                        marginBottom:
-                                            "8px",
-                                    }}
                                 >
                                     <h2
                                         className="
@@ -614,50 +951,191 @@ function Profile() {
                                             margin: 0,
                                         }}
                                     >
-                                        Personal
-                                        Information
+                                        Personal Information
                                     </h2>
 
-                                    <button
+                                    {!editingProfile && (
+    <button
+        type="button"
+        onClick={handleStartEditing}
+        className="
+            flex
+            items-center
+            gap-2
+            text-[var(--primary)]
+            hover:text-[var(--primary-hover)]
+            text-sm
+            font-medium
+        "
+    >
+        <Edit3 size={15} />
+        Edit
+    </button>
+)}
+                                </div>
+
+                                {editingProfile ? (
+    <form
+        onSubmit={(e) => {
+            e.preventDefault();
+            handleSaveProfile();
+        }}
+        className="flex flex-col gap-5"
+    >
+        <EditableProfileField
+            label="Full Name"
+            name="fullName"
+            value={editForm.fullName}
+            onChange={(e) =>
+                handleEditChange(
+                    "fullName",
+                    e.target.value
+                )
+            }
+        />
+
+        <EditableProfileField
+            label="Email Address"
+            name="email"
+            type="email"
+            value={editForm.email}
+            onChange={(e) =>
+                handleEditChange(
+                    "email",
+                    e.target.value
+                )
+            }
+        />
+
+        <EditableProfileField
+            label="Phone Number"
+            name="phoneNumber"
+            type="tel"
+            value={editForm.phoneNumber}
+            onChange={(e) =>
+                handleEditChange(
+                    "phoneNumber",
+                    e.target.value
+                )
+            }
+        />
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <EditableProfileField
+                label="City"
+                name="city"
+                value={editForm.city}
+                onChange={(e) =>
+                    handleEditChange(
+                        "city",
+                        e.target.value
+                    )
+                }
+            />
+
+            <EditableProfileField
+                label="Country"
+                name="country"
+                value={editForm.country}
+                onChange={(e) =>
+                    handleEditChange(
+                        "country",
+                        e.target.value
+                    )
+                }
+            />
+        </div>
+
+        <div className="flex justify-end gap-3 pt-2">
+            <button
+                type="button"
+                onClick={handleCancelEditing}
+                className="
+                    rounded-full
+                    border
+                    border-[var(--card-border)]
+                    text-[var(--text-secondary-plan)]
+                    hover:text-[var(--text-primary)]
+                    transition-colors
+                "
+                style={{
+                    padding: "10px 20px",
+                }}
+            >
+                Cancel
+            </button>
+
+            <button
+                type="submit"
+                disabled={savingProfile}
+                className="
+                    rounded-full
+                    bg-[var(--primary)]
+                    text-white
+                    font-medium
+                    hover:opacity-90
+                    disabled:opacity-50
+                    transition-opacity
+                "
+                style={{
+                    padding: "10px 22px",
+                }}
+            >
+                {savingProfile
+                    ? "Saving..."
+                    : "Save Changes"}
+            </button>
+        </div>
+    </form>
+
+                                ) : (
+                                    <div
                                         className="
-                                            text-[var(--primary)]
-                                            hover:text-[var(--primary-hover)]
-                                            text-sm
+                                            flex
+                                            flex-col
+                                            gap-6
                                         "
                                     >
-                                        Edit
-                                    </button>
-                                </div>
+                                        <ProfileField
+                                            label="Full Name"
+                                            value={name}
+                                        />
 
-                                <div
-                                    className="
-                                        flex
-                                        flex-col
-                                        gap-6
-                                    "
-                                >
-                                    <ProfileField
-                                        label="Full Name"
-                                        value={name}
-                                    />
+                                        <ProfileField
+                                            label="Email Address"
+                                            value={email}
+                                            type="email"
+                                        />
 
-                                    <ProfileField
-                                        label="Email Address"
-                                        value={email}
-                                        type="email"
-                                    />
+                                        <ProfileField
+                                            label="Phone Number"
+                                            value={phone}
+                                            type="tel"
+                                        />
 
-                                    <ProfileField
-                                        label="Phone Number"
-                                        value={phone}
-                                        type="tel"
-                                    />
+                                        <ProfileField
+                                            label="Location"
+                                            value={location}
+                                        />
+                                    </div>
+                                )}
 
-                                    <ProfileField
-                                        label="Location"
-                                        value={location}
-                                    />
-                                </div>
+                                {profileMessage && (
+                                    <p
+                                        className={`text-sm ${
+                                            profileMessage.includes(
+                                                "successfully"
+                                            )
+                                                ? "text-green-500"
+                                                : "text-[var(--error)]"
+                                        }`}
+                                        style={{
+                                            margin: 0,
+                                        }}
+                                    >
+                                        {profileMessage}
+                                    </p>
+                                )}
                             </div>
 
                             {/* TRAVEL PREFERENCES */}
@@ -670,7 +1148,9 @@ function Profile() {
                                     flex-col
                                     gap-6
                                 "
-                                style={cardStyle}
+                                style={
+                                    cardStyle
+                                }
                             >
                                 <h2
                                     className="
@@ -740,9 +1220,7 @@ function Profile() {
                             </div>
                         </div>
 
-                        {/* =================================================
-                            RIGHT COLUMN
-                        ================================================= */}
+                        {/* RIGHT */}
 
                         <div
                             className="
@@ -761,7 +1239,9 @@ function Profile() {
                                     flex-col
                                     gap-6
                                 "
-                                style={cardStyle}
+                                style={
+                                    cardStyle
+                                }
                             >
                                 <h2
                                     className="
@@ -798,13 +1278,7 @@ function Profile() {
                                             smallCardStyle
                                         }
                                     >
-                                        <div
-                                            className="
-                                                flex
-                                                flex-col
-                                                gap-1
-                                            "
-                                        >
+                                        <div className="flex flex-col gap-1">
                                             <span className="text-[var(--text-primary)]">
                                                 Password
                                             </span>
@@ -847,25 +1321,15 @@ function Profile() {
                                             smallCardStyle
                                         }
                                     >
-                                        <div
-                                            className="
-                                                flex
-                                                items-center
-                                                gap-3
-                                            "
-                                        >
+                                        <div className="flex items-center gap-3">
                                             <Shield
-                                                size={20}
+                                                size={
+                                                    20
+                                                }
                                                 className="text-[var(--primary)]"
                                             />
 
-                                            <div
-                                                className="
-                                                    flex
-                                                    flex-col
-                                                    gap-1
-                                                "
-                                            >
+                                            <div className="flex flex-col gap-1">
                                                 <span className="text-[var(--text-primary)]">
                                                     Two-Factor
                                                     Auth
@@ -874,7 +1338,8 @@ function Profile() {
                                                 <span className="text-sm text-[var(--text-secondary-plan)]">
                                                     Add an
                                                     extra
-                                                    layer of
+                                                    layer
+                                                    of
                                                     security
                                                 </span>
                                             </div>
@@ -931,7 +1396,9 @@ function Profile() {
                                     flex-col
                                     gap-6
                                 "
-                                style={cardStyle}
+                                style={
+                                    cardStyle
+                                }
                             >
                                 <h2
                                     className="
@@ -995,9 +1462,7 @@ function Profile() {
                         </div>
                     </section>
 
-                    {/* =================================================
-                        DANGER ZONE
-                    ================================================= */}
+                    {/* DANGER ZONE */}
 
                     <section
                         style={{
@@ -1017,15 +1482,11 @@ function Profile() {
                                 border
                                 border-[var(--error)]/20
                             "
-                            style={cardStyle}
+                            style={
+                                cardStyle
+                            }
                         >
-                            <div
-                                className="
-                                    flex
-                                    flex-col
-                                    gap-2
-                                "
-                            >
+                            <div className="flex flex-col gap-2">
                                 <h2
                                     className="
                                         text-2xl
@@ -1050,10 +1511,11 @@ function Profile() {
                                     }}
                                 >
                                     Permanently remove
-                                    your account and all
-                                    of its contents from
-                                    the Traveloop platform.
-                                    This action cannot be
+                                    your account and
+                                    all of its contents
+                                    from the Traveloop
+                                    platform. This
+                                    action cannot be
                                     reversed.
                                 </p>
                             </div>
@@ -1084,120 +1546,16 @@ function Profile() {
                         </div>
                     </section>
                 </main>
-
-                {/* =====================================================
-                    FOOTER
-                ===================================================== */}
-
-                <footer
-                    className="
-                        w-full
-                        bg-[var(--surface-container-lowest)]
-                        border-t
-                        border-[var(--outline-variant)]/20
-                    "
-                    style={footerStyle}
-                >
-                    <div
-                        className="
-                            max-w-7xl
-                            mx-auto
-                            flex
-                            flex-col
-                            md:flex-row
-                            justify-between
-                            items-center
-                            gap-6
-                        "
-                    >
-                        <div
-                            className="
-                                text-2xl
-                                font-semibold
-                                text-[var(--primary)]
-                            "
-                        >
-                            Traveloop
-                        </div>
-
-                        <div
-                            className="
-                                flex
-                                flex-wrap
-                                justify-center
-                                gap-6
-                            "
-                        >
-                            <a
-                                href="#"
-                                className="
-                                    text-[var(--text-secondary-plan)]
-                                    hover:text-[var(--primary)]
-                                    transition-colors
-                                    text-xs
-                                "
-                            >
-                                Privacy Policy
-                            </a>
-
-                            <a
-                                href="#"
-                                className="
-                                    text-[var(--text-secondary-plan)]
-                                    hover:text-[var(--primary)]
-                                    transition-colors
-                                    text-xs
-                                "
-                            >
-                                Terms of Service
-                            </a>
-
-                            <a
-                                href="#"
-                                className="
-                                    text-[var(--text-secondary-plan)]
-                                    hover:text-[var(--primary)]
-                                    transition-colors
-                                    text-xs
-                                "
-                            >
-                                Support
-                            </a>
-
-                            <a
-                                href="#"
-                                className="
-                                    text-[var(--text-secondary-plan)]
-                                    hover:text-[var(--primary)]
-                                    transition-colors
-                                    text-xs
-                                "
-                            >
-                                Contact
-                            </a>
-                        </div>
-
-                        <div
-                            className="
-                                text-[var(--primary)]
-                                text-xs
-                                text-center
-                                md:text-right
-                            "
-                        >
-                            © 2026 Traveloop.
-                            All rights reserved.
-                        </div>
-                    </div>
-                </footer>
             </div>
         </Layout>
     );
 }
 
-/* ============================================================
-   PROFILE FIELD
-============================================================ */
+/*
+|--------------------------------------------------------------------------
+| Read-only Profile Field
+|--------------------------------------------------------------------------
+*/
 
 function ProfileField({
     label,
@@ -1208,7 +1566,10 @@ function ProfileField({
         <div className="flex flex-col gap-2">
             <label
                 className="
-                    text-sm
+                    text-xs
+                    uppercase
+                    tracking-wider
+                    font-medium
                     text-[var(--text-secondary-plan)]
                 "
             >
@@ -1231,16 +1592,67 @@ function ProfileField({
                     outline-none
                 "
                 style={{
-                    padding: "4px 0 8px",
+                    padding:
+                        "4px 0 8px",
                 }}
             />
         </div>
     );
 }
 
-/* ============================================================
-   CONNECTED ACCOUNT
-============================================================ */
+function EditableProfileField({
+    label,
+    name,
+    value,
+    onChange,
+    type = "text",
+}) {
+    return (
+        <div className="flex flex-col gap-2">
+            <label
+                htmlFor={name}
+                className="
+                    text-xs
+                    uppercase
+                    tracking-wider
+                    font-semibold
+                    text-[var(--text-secondary-plan)]
+                "
+            >
+                {label}
+            </label>
+
+            <input
+                id={name}
+                name={name}
+                type={type}
+                value={value || ""}
+                onChange={onChange}
+                className="
+                    w-full
+                    rounded-lg
+                    bg-[var(--input-bg)]
+                    text-[var(--text-primary)]
+                    border
+                    border-[var(--input-border)]
+                    outline-none
+                    focus:border-[var(--primary)]
+                    focus:ring-2
+                    focus:ring-[var(--primary)]/20
+                "
+                style={{
+                    padding: "11px 14px",
+                }}
+            />
+        </div>
+    );
+}
+
+/*
+|--------------------------------------------------------------------------
+| Connected Account
+|--------------------------------------------------------------------------
+*/
 
 function ConnectedAccount({
     name,
@@ -1264,13 +1676,7 @@ function ConnectedAccount({
                 padding: "16px",
             }}
         >
-            <div
-                className="
-                    flex
-                    items-center
-                    gap-3
-                "
-            >
+            <div className="flex items-center gap-3">
                 <div
                     className="
                         w-10
@@ -1288,12 +1694,7 @@ function ConnectedAccount({
                     {icon}
                 </div>
 
-                <div
-                    className="
-                        flex
-                        flex-col
-                    "
-                >
+                <div className="flex flex-col">
                     <span className="text-[var(--text-primary)]">
                         {name}
                     </span>
