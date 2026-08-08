@@ -117,10 +117,7 @@ function Login() {
 
         console.log("Logged in user:", data.user);
 
-        /*
-         * Show success toast first.
-         * Redirect after the toast has been displayed.
-         */
+        localStorage.setItem("token", data.token);
         toast.success(
             data.message || "Login successful.",
             {
