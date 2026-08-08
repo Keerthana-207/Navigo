@@ -31,7 +31,11 @@ const tripSchema = new mongoose.Schema(
         travelStyle: {
             type: String,
             required: true,
-            enum: ["budget", "standard", "luxury"],
+            enum: [
+                "budget",
+                "standard",
+                "luxury",
+            ],
         },
 
         budget: {
@@ -43,13 +47,26 @@ const tripSchema = new mongoose.Schema(
         transport: {
             type: String,
             required: true,
-            enum: ["flight", "train", "car"],
+            enum: [
+                "flight",
+                "train",
+                "car",
+            ],
         },
 
         accommodation: {
             type: String,
             required: true,
-            enum: ["hotel", "hostel", "resort"],
+            enum: [
+                "hotel",
+                "hostel",
+                "resort",
+            ],
+        },
+
+        itineraryGenerated: {
+            type: Boolean,
+            default: false,
         },
     },
     {

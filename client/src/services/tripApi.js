@@ -111,3 +111,62 @@ export async function deleteTrip(tripId) {
     return data;
 }
 
+export const getTripPlaces = async (tripId) => {
+
+    const token =
+        localStorage.getItem("token") ||
+        sessionStorage.getItem("token");
+
+    const response = await fetch(
+        `${API_URL}/trips/${tripId}/places`,
+        {
+            method: "GET",
+
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+        }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(
+            data.message ||
+            "Failed to fetch itinerary"
+        );
+    }
+
+    return data;
+};
+
+export const generateTripItinerary = async (tripId) => {
+
+    const token =
+        localStorage.getItem("token") ||
+        sessionStorage.getItem("token");
+
+    const response = await fetch(
+        `${API_URL}/trips/${tripId}/generate-itinerary`,
+        {
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+        }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(
+            data.message ||
+            "Failed to generate itinerary"
+        );
+    }
+
+    return data;
+};

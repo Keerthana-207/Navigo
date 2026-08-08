@@ -18,7 +18,6 @@ const essentialSchema = new mongoose.Schema(
     }
 );
 
-
 const placeSchema = new mongoose.Schema(
     {
         trip: {
@@ -46,7 +45,17 @@ const placeSchema = new mongoose.Schema(
             ],
         },
 
-        estCost: {
+        description: {
+            type: String,
+            default: "",
+        },
+
+        notes: {
+            type: String,
+            default: "",
+        },
+
+        estimatedCost: {
             type: Number,
             default: 0,
             min: 0,
@@ -58,22 +67,9 @@ const placeSchema = new mongoose.Schema(
             min: 0,
         },
 
-        notes: {
-            type: String,
-            default: "",
-            trim: true,
-        },
-
         duration: {
             type: String,
             default: "",
-            trim: true,
-        },
-
-        desc: {
-            type: String,
-            default: "",
-            trim: true,
         },
 
         status: {
@@ -111,12 +107,15 @@ const placeSchema = new mongoose.Schema(
             type: [essentialSchema],
             default: [],
         },
+
+        order: {
+            type: Number,
+            default: 0,
+        },
     },
     {
         timestamps: true,
     }
 );
 
-const Place = mongoose.model("Place", placeSchema);
-
-module.exports = Place;
+module.exports = mongoose.model("Place", placeSchema);

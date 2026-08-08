@@ -1,6 +1,17 @@
-import React, { useState, useRef, useMemo, useEffect } from "react";
+import React, {
+    useState,
+    useRef,
+    useMemo,
+    useEffect
+} from "react";
+
 import { useParams } from "react-router-dom";
-import {PlusIcon, SearchIcon, ChevronLeftIcon, DownloadIcon} from "lucide-react";
+
+import {
+    PlusIcon,
+    SearchIcon
+} from "lucide-react";
+
 import Layout from "../../components/Layout/Layout";
 import FilterTabs from "../../components/Itinerary/FilterTabs.jsx";
 import PlaceCard from "../../components/Itinerary/PlaceCard";
@@ -8,29 +19,17 @@ import DetailPanel from "../../components/Itinerary/DetailPanel";
 import Schedule from "../../components/Itinerary/Schedule";
 import ItineraryHero from "../../components/Itinerary/ItineraryHero";
 import ItineraryFooter from "../../components/Itinerary/ItineraryFooter";
-import CategoryProgress from "../../components/Itinerary/CategoryProgress";
-import { getTripById } from "../../services/tripApi.js";
+
+import {
+    getTripById,
+    getTripPlaces,
+    generateTripItinerary
+} from "../../services/tripApi.js";
 
 const CATEGORIES = ["Beach", "Restaurant", "Shopping", "Adventure", "Historical"];
 const FILTERS = ["All", "Beaches", "Restaurants", "Shopping", "Adventure", "Historical", "Planned", "Unplanned", "Visited", "Favorites"];
 const FILTER_CATEGORY_MAP = { Beaches: "Beach", Restaurants: "Restaurant", Shopping: "Shopping", Adventure: "Adventure", Historical: "Historical" };
 const PERIOD_ORDER = ["Morning", "Afternoon", "Evening", "Unscheduled"];
-
-const INITIAL_TRIP = { name: "Goa Trip", days: 5, travelers: 3, budget: 60000 };
-
-const INITIAL_PLACES = [
-  { id: 1, name: "Baga Beach", category: "Beach", estCost: 500, actualCost: 650, notes: "Best visited before sunset. The shacks open early, but the crowd builds up post 4 PM. Try the local seafood at nearby shacks.", duration: "3 Hrs", desc: "Water sports and beach walk", status: "planned", day: 1, time: "09:00 AM", endTime: "12:00 PM", favorite: true,
-    essentials: [{ label: "Sunscreen", checked: true }, { label: "Extra clothes", checked: false }, { label: "Cash for shacks", checked: false }] },
-  { id: 2, name: "Chapora Fort", category: "Historical", estCost: 0, actualCost: null, notes: "Free entry. Great sunset viewpoint.", duration: "1.5 Hrs", desc: "Hilltop fort with sea views", status: "unplanned", day: null, time: null, endTime: null, favorite: false,
-    essentials: [{ label: "Water bottle", checked: false }] },
-  { id: 3, name: "Aguada Fort", category: "Historical", estCost: 300, actualCost: null, notes: "Carry sunscreen. Parking available.", duration: "2 Hrs", desc: "Historic Portuguese fort sightseeing", status: "planned", day: 1, time: "02:00 PM", endTime: "04:30 PM", favorite: false,
-    essentials: [{ label: "Sunscreen", checked: false }, { label: "Parking cash", checked: false }] },
-  { id: 4, name: "Britto's Restaurant", category: "Restaurant", estCost: 1500, actualCost: null, notes: "Book tickets online. Live music after 8 PM.", duration: "2.5 Hrs", desc: "Dinner with live music", status: "planned", day: 1, time: "07:30 PM", endTime: "10:00 PM", favorite: false,
-    essentials: [{ label: "Reservation confirmed", checked: false }] },
-  { id: 5, name: "Anjuna Flea Market", category: "Shopping", estCost: 1000, actualCost: null, notes: "Bargain hard. Open Wednesdays.", duration: "2 Hrs", desc: "Souvenirs and local crafts", status: "unplanned", day: null, time: null, endTime: null, favorite: false, essentials: [] },
-  { id: 6, name: "Scuba Diving Grande Island", category: "Adventure", estCost: 2200, actualCost: null, notes: "Book a slot in advance.", duration: "3 Hrs", desc: "Underwater diving experience", status: "unplanned", day: null, time: null, endTime: null, favorite: true,
-    essentials: [{ label: "Swimwear", checked: false }] },
-];
 
 /* ============================================================
    HELPERS
@@ -320,7 +319,7 @@ function PeriodTags({
 
 function ItineraryPlanner() {
   const [theme, setTheme] = useState("dark");
-  const [places, setPlaces] = useState(INITIAL_PLACES);
+  const [places, setPlaces] = useState([]);
   const [activeFilter, setActiveFilter] = useState("All");
   const [search, setSearch] = useState("");
   const [dirty, setDirty] = useState(false);
@@ -333,7 +332,7 @@ function ItineraryPlanner() {
   const [trip, setTrip] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const savedSnapshotRef = useRef(JSON.stringify(INITIAL_PLACES));
+  const savedSnapshotRef = useRef("[]");
   const nextIdRef = useRef(7);
 
   const selected = useMemo(() => places.find((p) => p.id === selectedId) || null, [places, selectedId]);
@@ -398,24 +397,30 @@ function ItineraryPlanner() {
     });
   }
 
-  const onAssignToDay = (
-      placeId,
-      day,
-      period
-  ) => {
-      setPlaces((current) =>
-          current.map((place) =>
-              place.id === placeId
-                  ? {
-                      ...place,
-                      day,
-                      period,
-                      status: "planned"
-                  }
-                  : place
-          )
-      );
-  };
+  const PERIOD_TIMES = {
+    Morning: "09:00 AM",
+    Afternoon: "02:00 PM",
+    Evening: "07:00 PM",
+    Unscheduled: null
+};
+
+const onAssignToDay = (placeId, day, period) => {
+    setPlaces((current) =>
+        current.map((place) =>
+            String(place.id) === String(placeId)
+                ? {
+                    ...place,
+                    day,
+                    period,
+                    time: PERIOD_TIMES[period],
+                    status: "planned"
+                }
+                : place
+        )
+    );
+
+    markDirty();
+};
 
   const onToggleVisited = (
       placeId,
@@ -532,26 +537,81 @@ function ItineraryPlanner() {
   }
   function onDropTo(key, day) {
     return (e) => {
-      e.preventDefault();
-      setDragOverKey(null);
-      const raw = e.dataTransfer.getData("text/plain");
-      const id = parseInt(raw, 10);
-      if (!isNaN(id)) assignToDay(id, day);
+        e.preventDefault();
+        setDragOverKey(null);
+
+        const id = e.dataTransfer.getData("text/plain");
+
+        if (id) {
+            onAssignToDay(id, day, key);
+        }
+
+        setDraggingId(null);
     };
-  }
+}
   useEffect(() => {
     async function loadTrip() {
         try {
             setLoading(true);
             setError("");
 
-            const data = await getTripById(tripId);
+            const tripData = await getTripById(tripId);
 
-            if (data.success) {
-                setTrip(data.trip);
+            if (!tripData.success) {
+                throw new Error("Trip not found");
             }
+
+            let currentTrip = tripData.trip;
+
+            setTrip(currentTrip);
+
+            const placesData = await getTripPlaces(tripId);
+
+            if (!placesData.success) {
+                throw new Error("Failed to load places");
+            }
+
+            let loadedPlaces = placesData.places.map((place) => ({
+                ...place,
+                id: place._id,
+                estCost: place.estimatedCost,
+            }));
+
+            // Generate itinerary only when needed
+            if (
+                loadedPlaces.length === 0 &&
+                !currentTrip.itineraryGenerated
+            ) {
+                const generated =
+                    await generateTripItinerary(tripId);
+
+                if (generated.success) {
+                    loadedPlaces = generated.places.map(
+                        (place) => ({
+                            ...place,
+                            id: place._id,
+                            estCost: place.estimatedCost,
+                        })
+                    );
+
+                    currentTrip = {
+                        ...currentTrip,
+                        itineraryGenerated: true,
+                    };
+                }
+            }
+
+            setPlaces(loadedPlaces);
+            setTrip(currentTrip);
+
+            savedSnapshotRef.current =
+                JSON.stringify(loadedPlaces);
+
         } catch (error) {
-            console.error("Load Trip Error:", error);
+            console.error(
+                "Load Itinerary Error:",
+                error
+            );
 
             setError(
                 error.message ||
@@ -566,6 +626,18 @@ function ItineraryPlanner() {
         loadTrip();
     }
 }, [tripId]);
+
+if (loading) {
+    return (
+        <Layout>
+            <div className="min-h-screen flex items-center justify-center">
+                <p className="text-[var(--text-dim)]">
+                    Loading itinerary...
+                </p>
+            </div>
+        </Layout>
+    );
+}
 
 if (error || !trip) {
     return (
