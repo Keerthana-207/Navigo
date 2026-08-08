@@ -304,10 +304,11 @@ function Login() {
                                     text-[30px]
                                     font-extrabold
                                     tracking-[-0.01em]
-                                    text-[var(--on-surface)]
-                                    dark:text-[#f4f6fa]
                                 "
-                                style={{ marginBottom: "10px" }}
+                                style={{
+                                    marginBottom: "10px",
+                                    color: theme === "dark" ? "#f4f6fa" : "#111827"
+                                }}
                             >
                                 Elevate Your Journey.
                             </h2>
@@ -395,9 +396,10 @@ function Login() {
                                         text-[19px]
                                         font-extrabold
                                         tracking-[-0.01em]
-                                        text-[var(--on-surface)]
-                                        dark:text-[#f4f6fa]
                                     "
+                                    style={{
+                                        color: theme === "dark" ? "#f4f6fa" : "#111827"
+                                    }}
                                 >
                                     Navigo
                                 </span>
@@ -411,10 +413,11 @@ function Login() {
                                     text-[27px]
                                     font-extrabold
                                     tracking-[-0.01em]
-                                    text-[var(--on-surface)]
-                                    dark:text-[#f4f6fa]
                                 "
-                                style={{ marginBottom: "8px" }}
+                                style={{
+                                    marginBottom: "8px",
+                                    color: theme === "dark" ? "#f4f6fa" : "#111827"
+                                }}
                             >
                                 Welcome Back
                             </h1>
