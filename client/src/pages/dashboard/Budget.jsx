@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import Layout from '../../components/Layout/Layout'
-
+import { useTheme } from "../../context/ThemeContext";
 // Self-contained SVG Icons
 const Icons = {
     Sun: () => (
@@ -357,6 +357,7 @@ const initialExpenses = [
 import { getMyTrips } from "../../services/tripApi";
 
 export default function NavigoBudget() {
+    const { isDark } = useTheme();
     const [trip, setTrip] = useState({
         destination: "Goa",
         days: 5,
@@ -633,18 +634,8 @@ export default function NavigoBudget() {
         : expenses.slice(0, 6);
 
     return (
-        <div
-            className={`${
-                isDark
-                    ? "dark bg-[#0a0d16] text-[#eef0f8]"
-                    : "bg-[#eef0f6] text-[#161a23]"
-            } min-h-screen font-sans transition-colors duration-300`}
-        >
+        <div className="min-h-screen bg-[var(--bg)] text-[var(--text-primary)] font-sans transition-colors duration-300">
             <Layout>
-
-            {/* =====================================================
-                MAIN
-            ===================================================== */}
 
             <main
                 className="w-full mx-auto"
@@ -653,12 +644,10 @@ export default function NavigoBudget() {
                         "32px 48px 48px",
                 }}
             >
-                {/* =================================================
-                    HERO
-                ================================================= */}
+               
 
                 <div
-                    className="relative rounded-3xl overflow-hidden min-h-[190px] flex flex-col justify-center text-orange-50 shadow-2xl bg-gradient-to-br from-[#3a1f45] via-[#7a3b3b] to-[#f2a950]"
+                    className="relative rounded-3xl overflow-hidden min-h-[190px] flex flex-col justify-center text-orange-50 shadow-2xl bg-gradient-to-br from-[var(--primary-container)] via-[var(--primary-fixed-dim)] to-[var(--primary)]"
                     style={{
                         padding: "40px",
                     }}
@@ -843,11 +832,7 @@ export default function NavigoBudget() {
                                             key={
                                                 cat.id
                                             }
-                                            className={`rounded-2xl border transition-all ${
-                                                isDark
-                                                    ? "bg-[#131722] border-[#232838]"
-                                                    : "bg-white border-[#e5e8f0]"
-                                            }`}
+                                            className="rounded-2xl border transition-all bg-[var(--card-bg)] border-[var(--card-border)]"
                                             style={{
                                                 padding:
                                                     "20px",
@@ -961,11 +946,7 @@ export default function NavigoBudget() {
                                             </div>
 
                                             <div
-                                                className={`w-full h-1.5 rounded-full overflow-hidden ${
-                                                    isDark
-                                                        ? "bg-[#1c2130]"
-                                                        : "bg-slate-200"
-                                                }`}
+                                                className="w-full h-1.5 rounded-full overflow-hidden bg-[var(--pill-bg)]"
                                             >
                                                 <div
                                                     className="h-full rounded-full transition-all duration-500"
@@ -987,11 +968,7 @@ export default function NavigoBudget() {
                                 onClick={
                                     handleAddNewCategory
                                 }
-                                className={`min-h-[150px] rounded-2xl border-2 border-dashed flex items-center justify-center gap-2 text-xs font-semibold transition-all hover:border-orange-500 hover:text-orange-500 ${
-                                    isDark
-                                        ? "border-[#2b3142] text-slate-400"
-                                        : "border-slate-300 text-slate-500"
-                                }`}
+                                className="min-h-[150px] rounded-2xl border-2 border-dashed flex items-center justify-center gap-2 text-xs font-semibold transition-all border-[var(--input-border)] text-[var(--text-secondary-plan)] hover:border-[var(--primary)] hover:text-[var(--primary)]"
                             >
                                 <Icons.Plus />
                                 New Category
@@ -1001,11 +978,7 @@ export default function NavigoBudget() {
                         {/* TRACK EXPENSE */}
 
                         <div
-                            className={`rounded-2xl border ${
-                                isDark
-                                    ? "bg-[#131722] border-[#232838]"
-                                    : "bg-white border-[#e5e8f0]"
-                            }`}
+                            className="rounded-2xl border bg-[var(--card-bg)] border-[var(--card-border)]"
                             style={{
                                 padding: "28px",
                             }}
@@ -1059,13 +1032,10 @@ export default function NavigoBudget() {
                                                         cat.id
                                                     )
                                                 }
-                                                className={`text-xs font-semibold rounded-full border transition-all ${
-                                                    isSelected
-                                                        ? "bg-orange-500/15 border-orange-500 text-orange-500"
-                                                        : isDark
-                                                        ? "bg-[#1c2130] border-[#2b3142] text-slate-300 hover:border-slate-600"
-                                                        : "bg-slate-100 border-slate-200 text-slate-700 hover:border-slate-300"
-                                                }`}
+                                                className={`text-xs font-semibold rounded-full border transition-all ${isSelected
+                                                        ? "bg-orange-500/15 border-[var(--primary)] text-[var(--primary)]"
+                                                        : "bg-[var(--pill-bg)] border-[var(--pill-border)] text-[var(--pill-text)] hover:border-[var(--outline)]"
+                                                    }`}
                                                 style={{
                                                     padding:
                                                         "8px 16px",
@@ -1084,11 +1054,7 @@ export default function NavigoBudget() {
                                     onClick={
                                         handleAddNewCategory
                                     }
-                                    className={`flex items-center gap-1.5 text-xs font-semibold rounded-full border border-dashed transition-all ${
-                                        isDark
-                                            ? "bg-[#1c2130] border-[#2b3142] text-slate-400 hover:text-orange-500 hover:border-orange-500"
-                                            : "bg-slate-100 border-slate-300 text-slate-600 hover:text-orange-500 hover:border-orange-500"
-                                    }`}
+                                    className="flex items-center gap-1.5 text-xs font-semibold rounded-full border border-dashed transition-all bg-[var(--pill-bg)] border-[var(--pill-border)] text-[var(--text-secondary-plan)] hover:text-[var(--primary)] hover:border-[var(--primary)]"
                                     style={{
                                         padding:
                                             "8px 16px",
@@ -1143,11 +1109,7 @@ export default function NavigoBudget() {
                                                         .value
                                                 )
                                             }
-                                            className={`w-full rounded-xl border text-sm outline-none transition-all focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 ${
-                                                isDark
-                                                    ? "bg-[#1a1f2e] border-[#2b3142] text-white placeholder-slate-500"
-                                                    : "bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400"
-                                            }`}
+                                            className="w-full rounded-xl border text-sm outline-none transition-all bg-[var(--input-bg)] border-[var(--input-border)] text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:border-[var(--input-border-focus)] focus:ring-2 focus:ring-orange-500/20"
                                             style={{
                                                 padding:
                                                     "12px 16px",
@@ -1185,11 +1147,7 @@ export default function NavigoBudget() {
                                                         .value
                                                 )
                                             }
-                                            className={`w-full rounded-xl border text-sm outline-none transition-all focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 ${
-                                                isDark
-                                                    ? "bg-[#1a1f2e] border-[#2b3142] text-white placeholder-slate-500"
-                                                    : "bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400"
-                                            }`}
+                                            className="w-full rounded-xl border text-sm outline-none transition-all bg-[var(--input-bg)] border-[var(--input-border)] text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:border-[var(--input-border-focus)] focus:ring-2 focus:ring-orange-500/20"
                                             style={{
                                                 padding:
                                                     "12px 16px",
@@ -1274,11 +1232,7 @@ export default function NavigoBudget() {
                         {/* SPEND DISTRIBUTION */}
 
                         <div
-                            className={`rounded-2xl border ${
-                                isDark
-                                    ? "bg-[#131722] border-[#232838]"
-                                    : "bg-white border-[#e5e8f0]"
-                            }`}
+                            className="rounded-2xl border bg-[var(--card-bg)] border-[var(--card-border)]"
                             style={{
                                 padding: "20px",
                             }}
@@ -1312,11 +1266,7 @@ export default function NavigoBudget() {
                                     }}
                                 >
                                     <div
-                                        className={`w-26 h-26 rounded-full flex flex-col items-center justify-center ${
-                                            isDark
-                                                ? "bg-[#131722]"
-                                                : "bg-white"
-                                        }`}
+                                        className="w-26 h-26 rounded-full flex flex-col items-center justify-center bg-[var(--card-bg)]"
                                     >
                                         <span
                                             className={`text-[11px] font-semibold ${
@@ -1394,11 +1344,7 @@ export default function NavigoBudget() {
                         {/* RECENT EXPENSES */}
 
                         <div
-                            className={`rounded-2xl border ${
-                                isDark
-                                    ? "bg-[#131722] border-[#232838]"
-                                    : "bg-white border-[#e5e8f0]"
-                            }`}
+                            className="rounded-2xl border bg-[var(--card-bg)] border-[var(--card-border)]"
                             style={{
                                 padding: "20px",
                             }}
@@ -1447,6 +1393,7 @@ export default function NavigoBudget() {
                                                     exp.id
                                                 }
                                                 className="py-3 flex items-start justify-between gap-3 first:pt-0 last:pb-0"
+                                                style={{padding: '15px', paddingBottom: '0'}}
                                             >
                                                 <div className="flex items-start gap-2.5">
                                                     <span
@@ -1556,21 +1503,13 @@ function StatCard({
 }) {
     return (
         <div
-            className={`rounded-xl text-center border ${
-                isDark
-                    ? "bg-[#131722] border-[#232838]"
-                    : "bg-white border-[#e5e8f0]"
-            }`}
+            className="rounded-xl text-center border bg-[var(--card-bg)] border-[var(--card-border)]"
             style={{
                 padding: "16px",
             }}
         >
             <div
-                className={`w-8.5 h-8.5 rounded-lg flex items-center justify-center mx-auto ${
-                    isDark
-                        ? "bg-[#1c2130] text-slate-400"
-                        : "bg-slate-100 text-slate-600"
-                }`}
+                className="w-8.5 h-8.5 rounded-lg flex items-center justify-center mx-auto bg-[var(--pill-bg)] text-[var(--text-secondary-plan)]"
                 style={{
                     marginBottom: "10px",
                 }}
