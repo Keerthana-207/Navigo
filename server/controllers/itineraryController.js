@@ -25,10 +25,11 @@ const generateTripItinerary = async (req, res) => {
             trip: trip._id,
         });
 
-        if (existingPlaces > 0) {
-            return res.status(400).json({
-                success: false,
-                message: "Itinerary already exists for this trip",
+        if (existingPlaces.length > 0) {
+            return res.status(200).json({
+                success: true,
+                message: "Itinerary already exists",
+                places: existingPlaces
             });
         }
 

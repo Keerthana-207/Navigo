@@ -1,7 +1,12 @@
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+const API_URL =
+    import.meta.env.VITE_API_URL ||
+    "http://localhost:5000/api";
 
 function getToken() {
-    return localStorage.getItem("token");
+    return (
+        localStorage.getItem("token") ||
+        sessionStorage.getItem("token")
+    );
 }
 
 function getHeaders() {
@@ -9,9 +14,11 @@ function getHeaders() {
 
     return {
         "Content-Type": "application/json",
-        ...(token && {
-            Authorization: `Bearer ${token}`,
-        }),
+        ...(token
+            ? {
+                  Authorization: `Bearer ${token}`,
+              }
+            : {}),
     };
 }
 
@@ -50,6 +57,7 @@ export async function getMyTrips() {
     return data;
 }
 
+
 export async function getTripById(tripId) {
     const response = await fetch(
         `${API_URL}/trips/${tripId}`,
@@ -69,6 +77,7 @@ export async function getTripById(tripId) {
 
     return data;
 }
+
 
 export async function updateTrip(tripId, tripData) {
     const response = await fetch(
@@ -91,6 +100,7 @@ export async function updateTrip(tripId, tripData) {
     return data;
 }
 
+
 export async function deleteTrip(tripId) {
     const response = await fetch(
         `${API_URL}/trips/${tripId}`,
@@ -111,21 +121,13 @@ export async function deleteTrip(tripId) {
     return data;
 }
 
-export const getTripPlaces = async (tripId) => {
 
-    const token =
-        localStorage.getItem("token") ||
-        sessionStorage.getItem("token");
-
+export async function getTripPlaces(tripId) {
     const response = await fetch(
         `${API_URL}/trips/${tripId}/places`,
         {
             method: "GET",
-
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-            },
+            headers: getHeaders(),
         }
     );
 
@@ -134,63 +136,108 @@ export const getTripPlaces = async (tripId) => {
     if (!response.ok) {
         throw new Error(
             data.message ||
-            "Failed to fetch itinerary"
+                "Failed to fetch itinerary"
         );
     }
 
     return data;
-};
+}
 
-export const generateTripItinerary = async (tripId) => {
-    const response = await fetch(`${API_URL}/trips/${tripId}/generate-itinerary`, {
-        method: "POST",
-        headers: getHeaders(),
-    });
 
-    const data = await response.json();
-    if (!response.ok) {
-        throw new Error(data.message || "Failed to generate itinerary");
-    }
-    return data;
-};
-
-export const createPlace = async (tripId, placeData) => {
-    const response = await fetch(`${API_URL}/trips/${tripId}/places`, {
-        method: "POST",
-        headers: getHeaders(),
-        body: JSON.stringify(placeData),
-    });
+export async function generateTripItinerary(tripId) {
+    const response = await fetch(
+        `${API_URL}/trips/${tripId}/generate-itinerary`,
+        {
+            method: "POST",
+            headers: getHeaders(),
+        }
+    );
 
     const data = await response.json();
-    if (!response.ok) {
-        throw new Error(data.message || "Failed to create place");
-    }
-    return data;
-};
 
-export const updatePlace = async (tripId, placeId, placeData) => {
-    const response = await fetch(`${API_URL}/trips/${tripId}/places/${placeId}`, {
-        method: "PUT",
-        headers: getHeaders(),
-        body: JSON.stringify(placeData),
-    });
+    if (!response.ok) {
+        throw new Error(
+            data.message ||
+                "Failed to generate itinerary"
+        );
+    }
+
+    return data;
+}
+
+
+export async function createPlace(
+    tripId,
+    placeData
+) {
+    const response = await fetch(
+        `${API_URL}/trips/${tripId}/places`,
+        {
+            method: "POST",
+            headers: getHeaders(),
+            body: JSON.stringify(placeData),
+        }
+    );
 
     const data = await response.json();
-    if (!response.ok) {
-        throw new Error(data.message || "Failed to update place");
-    }
-    return data;
-};
 
-export const deletePlace = async (tripId, placeId) => {
-    const response = await fetch(`${API_URL}/trips/${tripId}/places/${placeId}`, {
-        method: "DELETE",
-        headers: getHeaders(),
-    });
+    if (!response.ok) {
+        throw new Error(
+            data.message ||
+                "Failed to create place"
+        );
+    }
+
+    return data;
+}
+
+
+export async function updatePlace(
+    tripId,
+    placeId,
+    placeData
+) {
+    const response = await fetch(
+        `${API_URL}/trips/${tripId}/places/${placeId}`,
+        {
+            method: "PUT",
+            headers: getHeaders(),
+            body: JSON.stringify(placeData),
+        }
+    );
 
     const data = await response.json();
+
     if (!response.ok) {
-        throw new Error(data.message || "Failed to delete place");
+        throw new Error(
+            data.message ||
+                "Failed to update place"
+        );
     }
+
     return data;
-};
+}
+
+export async function deletePlace(
+    tripId,
+    placeId
+) {
+    const response = await fetch(
+        `${API_URL}/trips/${tripId}/places/${placeId}`,
+        {
+            method: "DELETE",
+            headers: getHeaders(),
+        }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(
+            data.message ||
+                "Failed to delete place"
+        );
+    }
+
+    return data;
+}

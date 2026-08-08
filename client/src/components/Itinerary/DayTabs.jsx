@@ -3,41 +3,47 @@ function DayTabs({
     activeDay,
     setActiveDay
 }) {
+    const totalDays = Math.max(
+        1,
+        Number(days) || 1
+    );
 
     return (
         <div
             className="
                 flex
+                w-full
                 overflow-x-auto
-                bg-[var(--surface-container)]
                 rounded-xl
                 border
                 border-[var(--outline-variant)]
+                bg-[var(--surface-container)]
             "
             style={{
                 padding: "5px",
                 gap: "4px",
-                marginBottom: "20px"
+                marginBottom: "20px",
             }}
         >
             {Array.from(
-                { length: days },
+                { length: totalDays },
                 (_, index) => index + 1
             ).map((day) => {
-
                 const active = day === activeDay;
 
                 return (
                     <button
                         key={day}
+                        type="button"
                         onClick={() =>
                             setActiveDay(day)
                         }
                         className={`
+                            shrink-0
                             rounded-[9px]
-                            text-[13.5px]
-                            font-bold
                             whitespace-nowrap
+                            text-[14px]
+                            font-bold
                             transition-colors
                             ${
                                 active
@@ -54,15 +60,15 @@ function DayTabs({
                             }
                         `}
                         style={{
-                            padding: "10px 18px",
+                            padding: "11px 20px",
                             transitionDuration:
-                                "var(--transition-fast)"
+                                "var(--transition-fast)",
                         }}
                     >
                         <span
                             className={`
                                 border-b-2
-                                pb-0.5
+                                pb-1
                                 ${
                                     active
                                         ? "border-[var(--primary)]"

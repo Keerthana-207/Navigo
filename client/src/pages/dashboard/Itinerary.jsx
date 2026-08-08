@@ -15,6 +15,7 @@ import {
 import Layout from "../../components/Layout/Layout";
 import FilterTabs from "../../components/Itinerary/FilterTabs.jsx";
 import PlaceCard from "../../components/Itinerary/PlaceCard";
+import DayTabs from "../../components/Itinerary/DayTabs";
 import DetailPanel from "../../components/Itinerary/DetailPanel";
 import Schedule from "../../components/Itinerary/Schedule";
 import ItineraryHero from "../../components/Itinerary/ItineraryHero";
@@ -571,64 +572,184 @@ const onAssignToDay = (placeId, day, period) => {
     };
 }
   useEffect(() => {
+    let cancelled = false;
+
     async function loadTrip() {
         try {
             setLoading(true);
             setError("");
 
+            // ----------------------------------------
+            // 1. Get Trip
+            // ----------------------------------------
+
             const tripData = await getTripById(tripId);
 
-            if (!tripData.success) {
+            if (!tripData.success || !tripData.trip) {
                 throw new Error("Trip not found");
             }
 
             let currentTrip = tripData.trip;
 
+            if (cancelled) return;
+
             setTrip(currentTrip);
+
+
+            // ----------------------------------------
+            // 2. Get Existing Places
+            // ----------------------------------------
 
             const placesData = await getTripPlaces(tripId);
 
             if (!placesData.success) {
-                throw new Error("Failed to load places");
+                throw new Error(
+                    placesData.message ||
+                    "Failed to load places"
+                );
             }
 
-            let loadedPlaces = placesData.places.map((place) => ({
-                ...place,
-                id: place._id,
-                estCost: place.estimatedCost,
-            }));
+            let loadedPlaces = (placesData.places || []).map(
+                (place) => ({
+                    ...place,
+                    id: place._id || place.id,
+                    estCost:
+                        place.estimatedCost ??
+                        place.estCost ??
+                        0,
+                })
+            );
 
-            // Generate itinerary only when needed
+
+            // ----------------------------------------
+            // 3. Generate only when there are
+            //    genuinely no existing places
+            // ----------------------------------------
+
             if (
                 loadedPlaces.length === 0 &&
                 !currentTrip.itineraryGenerated
             ) {
-                const generated =
-                    await generateTripItinerary(tripId);
-
-                if (generated.success) {
-                    loadedPlaces = generated.places.map(
-                        (place) => ({
-                            ...place,
-                            id: place._id,
-                            estCost: place.estimatedCost,
-                        })
+                try {
+                    console.log(
+                        "No itinerary places found. Generating itinerary..."
                     );
 
-                    currentTrip = {
-                        ...currentTrip,
-                        itineraryGenerated: true,
-                    };
+                    const generated =
+                        await generateTripItinerary(tripId);
+
+                    if (
+                        generated &&
+                        generated.success &&
+                        Array.isArray(generated.places)
+                    ) {
+                        loadedPlaces =
+                            generated.places.map(
+                                (place) => ({
+                                    ...place,
+                                    id:
+                                        place._id ||
+                                        place.id,
+                                    estCost:
+                                        place.estimatedCost ??
+                                        place.estCost ??
+                                        0,
+                                })
+                            );
+
+                        currentTrip = {
+                            ...currentTrip,
+                            itineraryGenerated: true,
+                        };
+
+                        console.log(
+                            "Itinerary generated successfully."
+                        );
+                    }
+                } catch (generateError) {
+
+                    // --------------------------------
+                    // IMPORTANT:
+                    // Backend says itinerary already
+                    // exists -> fetch it again.
+                    // --------------------------------
+
+                    if (
+                        generateError.message?.toLowerCase()
+                            .includes("itinerary already exists")
+                    ) {
+                        console.log(
+                            "Itinerary already exists. Loading existing itinerary..."
+                        );
+
+                        const existingPlacesData =
+                            await getTripPlaces(tripId);
+
+                        if (
+                            existingPlacesData.success &&
+                            Array.isArray(
+                                existingPlacesData.places
+                            )
+                        ) {
+                            loadedPlaces =
+                                existingPlacesData.places.map(
+                                    (place) => ({
+                                        ...place,
+                                        id:
+                                            place._id ||
+                                            place.id,
+                                        estCost:
+                                            place.estimatedCost ??
+                                            place.estCost ??
+                                            0,
+                                    })
+                                );
+
+                            currentTrip = {
+                                ...currentTrip,
+                                itineraryGenerated: true,
+                            };
+                        } else {
+                            throw new Error(
+                                "Itinerary exists, but its places could not be loaded."
+                            );
+                        }
+                    } else {
+                        throw generateError;
+                    }
                 }
             }
 
+
+            // ----------------------------------------
+            // 4. Prevent state update after unmount
+            // ----------------------------------------
+
+            if (cancelled) return;
+
+
+            // ----------------------------------------
+            // 5. Set final state
+            // ----------------------------------------
+
             setPlaces(loadedPlaces);
+
             setTrip(currentTrip);
 
             savedSnapshotRef.current =
                 JSON.stringify(loadedPlaces);
 
+            // Select first place if available
+            if (
+                loadedPlaces.length > 0 &&
+                selectedId === null
+            ) {
+                setSelectedId(loadedPlaces[0].id);
+            }
+
         } catch (error) {
+            if (cancelled) return;
+
             console.error(
                 "Load Itinerary Error:",
                 error
@@ -639,13 +760,20 @@ const onAssignToDay = (placeId, day, period) => {
                 "Failed to load itinerary."
             );
         } finally {
-            setLoading(false);
+            if (!cancelled) {
+                setLoading(false);
+            }
         }
     }
 
     if (tripId) {
         loadTrip();
     }
+
+    return () => {
+        cancelled = true;
+    };
+
 }, [tripId]);
 
 if (loading) {
@@ -772,20 +900,28 @@ if (error || !trip) {
           </div>
 
           {/* SCHEDULE */}
-          <Schedule
-              trip={trip}
-              places={places}
-              activeDay={activeDay}
-              setActiveDay={setActiveDay}
-              selectedId={selectedId}
-              setSelectedId={setSelectedId}
-              draggingId={draggingId}
-              setDraggingId={setDraggingId}
-              dragOverKey={dragOverKey}
-              setDragOverKey={setDragOverKey}
-              onAssignToDay={onAssignToDay}
-              onToggleVisited={onToggleVisited}
-          />
+            <div>
+                <DayTabs
+                    days={Number(trip?.duration) || Number(trip?.days) || 1}
+                    activeDay={activeDay}
+                    setActiveDay={setActiveDay}
+                />
+
+                <Schedule
+                    trip={trip}
+                    places={places}
+                    activeDay={activeDay}
+                    setActiveDay={setActiveDay}
+                    selectedId={selectedId}
+                    setSelectedId={setSelectedId}
+                    draggingId={draggingId}
+                    setDraggingId={setDraggingId}
+                    dragOverKey={dragOverKey}
+                    setDragOverKey={setDragOverKey}
+                    onAssignToDay={onAssignToDay}
+                    onToggleVisited={onToggleVisited}
+                />
+            </div>
 
 
           {/* DETAIL */}
