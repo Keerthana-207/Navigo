@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import Layout from '../../components/Layout/Layout'
 
 // Self-contained SVG Icons
 const Icons = {
@@ -610,103 +611,7 @@ export default function NavigoBudget() {
                     : "bg-[#eef0f6] text-[#161a23]"
             } min-h-screen font-sans transition-colors duration-300`}
         >
-            {/* =====================================================
-                HEADER
-            ===================================================== */}
-
-            <header
-                className={`flex items-center justify-between border-b transition-colors duration-300 ${
-                    isDark
-                        ? "bg-[#0a0d16] border-[#1c2130]"
-                        : "bg-white border-[#e5e8f0]"
-                }`}
-                style={{
-                    padding: "24px 48px",
-                }}
-            >
-                <div className="text-2xl font-bold">
-                    Navigo
-                </div>
-
-                <nav
-                    className="hidden md:flex gap-9"
-                >
-                    <a
-                        href="#"
-                        className={`text-sm font-medium transition-colors hover:text-orange-500 ${
-                            isDark
-                                ? "text-slate-400"
-                                : "text-slate-600"
-                        }`}
-                    >
-                        Home
-                    </a>
-
-                    <a
-                        href="#"
-                        className={`text-sm font-medium transition-colors hover:text-orange-500 ${
-                            isDark
-                                ? "text-slate-400"
-                                : "text-slate-600"
-                        }`}
-                    >
-                        My Trips
-                    </a>
-
-                    <a
-                        href="#"
-                        className="text-sm font-semibold relative pb-1.5 text-orange-500 after:content-[''] after:absolute after:left-0 after:right-0 after:bottom-0 after:h-0.5 after:bg-gradient-to-r after:from-orange-500 after:to-amber-400 after:rounded-full"
-                    >
-                        Budget
-                    </a>
-
-                    <a
-                        href="#"
-                        className={`text-sm font-medium transition-colors hover:text-orange-500 ${
-                            isDark
-                                ? "text-slate-400"
-                                : "text-slate-600"
-                        }`}
-                    >
-                        Explore
-                    </a>
-                </nav>
-
-                <div className="flex items-center gap-4">
-                    <button
-                        onClick={() =>
-                            setIsDark(!isDark)
-                        }
-                        aria-label="Toggle theme"
-                        className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors ${
-                            isDark
-                                ? "text-slate-400 hover:bg-[#1c2130] hover:text-white"
-                                : "text-slate-600 hover:bg-slate-200 hover:text-slate-900"
-                        }`}
-                    >
-                        {isDark ? (
-                            <Icons.Moon />
-                        ) : (
-                            <Icons.Sun />
-                        )}
-                    </button>
-
-                    <button
-                        aria-label="Notifications"
-                        className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors ${
-                            isDark
-                                ? "text-slate-400 hover:bg-[#1c2130] hover:text-white"
-                                : "text-slate-600 hover:bg-slate-200 hover:text-slate-900"
-                        }`}
-                    >
-                        <Icons.Bell />
-                    </button>
-
-                    <div className="w-8.5 h-8.5 rounded-full bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center text-xs font-bold text-white shadow-md">
-                        N
-                    </div>
-                </div>
-            </header>
+            <Layout>
 
             {/* =====================================================
                 MAIN
@@ -1532,6 +1437,7 @@ export default function NavigoBudget() {
                                                             style={{
                                                                 marginBottom:
                                                                     "2px",
+                                                                paddingBottom: "5px"
                                                             }}
                                                         >
                                                             {
@@ -1603,61 +1509,7 @@ export default function NavigoBudget() {
                 </div>
             </main>
 
-            {/* =====================================================
-                FOOTER
-            ===================================================== */}
-
-            <footer
-                className={`border-t flex flex-wrap items-center justify-between gap-4 transition-colors duration-300 ${
-                    isDark
-                        ? "bg-[#0a0d16] border-[#1c2130]"
-                        : "bg-white border-[#e5e8f0]"
-                }`}
-                style={{
-                    padding: "20px 48px",
-                }}
-            >
-                <div
-                    className={`text-xs ${
-                        isDark
-                            ? "text-slate-400"
-                            : "text-slate-500"
-                    }`}
-                >
-                    © 2024 Navigo. Engineering the
-                    art of exploration.
-                </div>
-
-                <div className="flex items-center gap-3">
-                    <button
-                        onClick={
-                            handleSaveBudget
-                        }
-                        className={`rounded-xl text-xs font-bold border transition-colors ${
-                            isDark
-                                ? "bg-[#1a1f2e] border-[#2b3142] text-white hover:border-slate-500"
-                                : "bg-slate-100 border-slate-300 text-slate-800 hover:border-slate-400"
-                        }`}
-                        style={{
-                            padding:
-                                "10px 22px",
-                        }}
-                    >
-                        {saveStatus}
-                    </button>
-
-                    <button
-                        className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold text-xs shadow-lg shadow-orange-500/25 hover:brightness-105 active:scale-[0.98] transition-all"
-                        style={{
-                            padding:
-                                "10px 22px",
-                        }}
-                    >
-                        Continue to Itinerary
-                        <Icons.ArrowRight />
-                    </button>
-                </div>
-            </footer>
+            </Layout>
         </div>
     );
 }
