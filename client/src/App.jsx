@@ -10,6 +10,7 @@ import Login from './pages/dashboard/NavigoLogin'
 import LandingPage from './pages/public/LandingPage'
 import ItineraryPlanner from './pages/dashboard/Itinerary'
 import MyTrips from './pages/dashboard/MyTrips'
+import Profile from './pages/dashboard/Profile'
 
 
 
@@ -24,6 +25,7 @@ function App() {
       <Route path='/register' element={<CreateAccount />} />
       <Route path='/login' element={<Login />} />
       <Route path="/itinerary/:tripId" element={<ItineraryPlanner />} />
+      <Route path='/profile' element={<Profile />} />
 
       <Route path='/my-trips' element={<MyTrips />} />
     </Routes>
