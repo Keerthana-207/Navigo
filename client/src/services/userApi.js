@@ -29,3 +29,32 @@ export async function getProfile() {
 
     return data;
 }
+
+export async function updateProfile(profileData) {
+    const token =
+        localStorage.getItem("token") ||
+        sessionStorage.getItem("token");
+
+    const response = await fetch(
+        `${API_URL}/auth/profile`,
+        {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(profileData),
+        }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(
+            data?.message ||
+                "Failed to update profile"
+        );
+    }
+
+    return data;
+}

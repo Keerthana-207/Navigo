@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import {
     Search,
     PlusCircle,
@@ -6,22 +6,18 @@ import {
     PlaneTakeoff,
     Backpack,
     Sun,
-    AlertTriangle,
-    ShieldCheck,
-    Leaf,
     ArrowRight,
     Calendar,
     MapPin,
-    CloudRain,
-    Thermometer,
-    Umbrella,
-    TrendingDown,
     CircleDollarSign,
-    TreePine,
-    Train,
-    Wind,
-    CheckCircle2,
     Clock,
+    CheckCircle2,
+    Map,
+    Route,
+    Users,
+    Compass,
+    ChevronRight,
+    Loader2,
 } from "lucide-react";
 
 import Layout from "../../components/Layout/Layout";
@@ -29,10 +25,705 @@ import { useNavigate } from "react-router-dom";
 import { getMyTrips } from "../../services/tripApi";
 import "../css/Dashboard.css";
 
-
 /* ============================================================
-   ACTION CARD
+   API
 ============================================================ */
+
+const API_URL =
+    import.meta.env.VITE_API_URL ||
+    "http://localhost:5000/api";
+
+const SEARCH_API = `${API_URL}/places/search`;
+
+function TripProgress({ trip }) {
+    const steps = [
+        {
+            label: "Trip Created",
+            completed: true,
+            icon: <CheckCircle2 size={18} />,
+        },
+        {
+            label: "Itinerary",
+            completed: Boolean(
+                trip?.itinerary?.length ||
+                trip?.itinerary
+            ),
+            icon: <Route size={18} />,
+        },
+        {
+            label: "Budget",
+            completed: Boolean(trip?.budget),
+            icon: <Wallet size={18} />,
+        },
+        {
+            label: "Packing",
+            completed: Boolean(
+                trip?.packingList?.length
+            ),
+            icon: <Backpack size={18} />,
+        },
+        {
+            label: "Ready",
+            completed: false,
+            icon: <PlaneTakeoff size={18} />,
+        },
+    ];
+
+    return (
+        <div
+            className="
+                rounded-3xl
+                border
+                border-[var(--border)]
+                bg-[var(--card-bg)]
+                shadow-lg
+            "
+            style={{
+                padding: "24px",
+            }}
+        >
+            <div
+                className="
+                    flex
+                    items-center
+                    justify-between
+                "
+                style={{
+                    marginBottom: "24px",
+                }}
+            >
+                <div>
+                    <p
+                        className="
+                            text-xs
+                            font-bold
+                            uppercase
+                            tracking-wider
+                            text-[var(--primary)]
+                        "
+                    >
+                        Planning Progress
+                    </p>
+
+                    <h3
+                        className="
+                            text-xl
+                            font-bold
+                            text-[var(--on-surface)]
+                        "
+                        style={{
+                            marginTop: "4px",
+                        }}
+                    >
+                        Your trip journey
+                    </h3>
+                </div>
+
+                <Compass
+                    size={24}
+                    className="text-[var(--primary)]"
+                />
+            </div>
+
+            <div
+                className="
+                    flex
+                    flex-col
+                    gap-4
+                "
+            >
+                {steps.map((step, index) => (
+                    <div
+                        key={step.label}
+                        className="
+                            flex
+                            items-center
+                            gap-4
+                        "
+                    >
+                        <div
+                            className={`
+                                w-10
+                                h-10
+                                rounded-full
+                                flex
+                                items-center
+                                justify-center
+                                shrink-0
+                                ${
+                                    step.completed
+                                        ? "bg-emerald-500/15 text-emerald-500"
+                                        : "bg-[var(--input-bg)] text-[var(--on-surface-variant)]"
+                                }
+                            `}
+                        >
+                            {step.icon}
+                        </div>
+
+                        <div className="flex-1">
+                            <p
+                                className="
+                                    text-sm
+                                    font-bold
+                                    text-[var(--on-surface)]
+                                "
+                            >
+                                {step.label}
+                            </p>
+
+                            <p
+                                className="
+                                    text-xs
+                                    text-[var(--on-surface-variant)]
+                                "
+                                style={{
+                                    marginTop: "2px",
+                                }}
+                            >
+                                {step.completed
+                                    ? "Completed"
+                                    : "Not completed yet"}
+                            </p>
+                        </div>
+
+                        {step.completed && (
+                            <CheckCircle2
+                                size={17}
+                                className="text-emerald-500"
+                            />
+                        )}
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+}
+
+function TripSnapshot({ trip }) {
+    if (!trip) return null;
+
+    return (
+        <div
+            className="
+                rounded-3xl
+                border
+                border-[var(--border)]
+                bg-[var(--card-bg)]
+                shadow-lg
+            "
+            style={{
+                padding: "24px",
+            }}
+        >
+            <div
+                className="
+                    flex
+                    items-center
+                    justify-between
+                "
+                style={{
+                    marginBottom: "22px",
+                }}
+            >
+                <div>
+                    <p
+                        className="
+                            text-xs
+                            font-bold
+                            uppercase
+                            tracking-wider
+                            text-[var(--primary)]
+                        "
+                    >
+                        Trip Overview
+                    </p>
+
+                    <h3
+                        className="
+                            text-xl
+                            font-bold
+                            text-[var(--on-surface)]
+                        "
+                        style={{
+                            marginTop: "4px",
+                        }}
+                    >
+                        Trip Snapshot
+                    </h3>
+                </div>
+
+                <Map
+                    size={24}
+                    className="text-[var(--primary)]"
+                />
+            </div>
+
+            <div
+                className="
+                    grid
+                    grid-cols-1
+                    sm:grid-cols-2
+                    gap-3
+                "
+            >
+                <div
+                    className="
+                        rounded-2xl
+                        bg-[var(--input-bg)]
+                    "
+                    style={{
+                        padding: "14px",
+                    }}
+                >
+                    <MapPin
+                        size={18}
+                        className="text-[var(--primary)]"
+                    />
+
+                    <p
+                        className="
+                            text-xs
+                            text-[var(--on-surface-variant)]
+                        "
+                        style={{
+                            marginTop: "8px",
+                        }}
+                    >
+                        Destination
+                    </p>
+
+                    <p
+                        className="
+                            text-sm
+                            font-bold
+                            text-[var(--on-surface)]
+                        "
+                        style={{
+                            marginTop: "3px",
+                        }}
+                    >
+                        {trip.destination || "Not specified"}
+                    </p>
+                </div>
+
+                <div
+                    className="
+                        rounded-2xl
+                        bg-[var(--input-bg)]
+                    "
+                    style={{
+                        padding: "14px",
+                    }}
+                >
+                    <Calendar
+                        size={18}
+                        className="text-[var(--primary)]"
+                    />
+
+                    <p
+                        className="
+                            text-xs
+                            text-[var(--on-surface-variant)]
+                        "
+                        style={{
+                            marginTop: "8px",
+                        }}
+                    >
+                        Duration
+                    </p>
+
+                    <p
+                        className="
+                            text-sm
+                            font-bold
+                            text-[var(--on-surface)]
+                        "
+                        style={{
+                            marginTop: "3px",
+                        }}
+                    >
+                        {trip.duration || 0} Days
+                    </p>
+                </div>
+
+                <div
+                    className="
+                        rounded-2xl
+                        bg-[var(--input-bg)]
+                    "
+                    style={{
+                        padding: "14px",
+                    }}
+                >
+                    <Users
+                        size={18}
+                        className="text-[var(--primary)]"
+                    />
+
+                    <p
+                        className="
+                            text-xs
+                            text-[var(--on-surface-variant)]
+                        "
+                        style={{
+                            marginTop: "8px",
+                        }}
+                    >
+                        Travelers
+                    </p>
+
+                    <p
+                        className="
+                            text-sm
+                            font-bold
+                            text-[var(--on-surface)]
+                        "
+                        style={{
+                            marginTop: "3px",
+                        }}
+                    >
+                        {trip.travelers || 1}
+                    </p>
+                </div>
+
+                <div
+                    className="
+                        rounded-2xl
+                        bg-[var(--input-bg)]
+                    "
+                    style={{
+                        padding: "14px",
+                    }}
+                >
+                    <Wallet
+                        size={18}
+                        className="text-[var(--primary)]"
+                    />
+
+                    <p
+                        className="
+                            text-xs
+                            text-[var(--on-surface-variant)]
+                        "
+                        style={{
+                            marginTop: "8px",
+                        }}
+                    >
+                        Budget
+                    </p>
+
+                    <p
+                        className="
+                            text-sm
+                            font-bold
+                            text-[var(--on-surface)]
+                        "
+                        style={{
+                            marginTop: "3px",
+                        }}
+                    >
+                        ₹
+                        {Number(
+                            trip.budget || 0
+                        ).toLocaleString()}
+                    </p>
+                </div>
+            </div>
+
+            <div
+                className="
+                    rounded-2xl
+                    border
+                    border-[var(--border)]
+                    bg-[var(--surface-container-low)]
+                "
+                style={{
+                    padding: "14px",
+                    marginTop: "14px",
+                }}
+            >
+                <div
+                    className="
+                        flex
+                        items-center
+                        justify-between
+                        gap-3
+                    "
+                >
+                    <div>
+                        <p
+                            className="
+                                text-xs
+                                text-[var(--on-surface-variant)]
+                            "
+                        >
+                            Travel style
+                        </p>
+
+                        <p
+                            className="
+                                text-sm
+                                font-bold
+                                capitalize
+                                text-[var(--on-surface)]
+                            "
+                            style={{
+                                marginTop: "3px",
+                            }}
+                        >
+                            {trip.travelStyle ||
+                                "Not specified"}
+                        </p>
+                    </div>
+
+                    <PlaneTakeoff
+                        size={20}
+                        className="text-[var(--primary)]"
+                    />
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function UpcomingActivities({ trip, navigate }) {
+    const itinerary = Array.isArray(
+        trip?.itinerary
+    )
+        ? trip.itinerary
+        : [];
+
+    const activities = itinerary.slice(0, 3);
+
+    return (
+        <div
+            className="
+                rounded-3xl
+                border
+                border-[var(--border)]
+                bg-[var(--card-bg)]
+                shadow-lg
+            "
+            style={{
+                padding: "24px",
+            }}
+        >
+            <div
+                className="
+                    flex
+                    items-center
+                    justify-between
+                "
+                style={{
+                    marginBottom: "22px",
+                }}
+            >
+                <div>
+                    <p
+                        className="
+                            text-xs
+                            font-bold
+                            uppercase
+                            tracking-wider
+                            text-[var(--primary)]
+                        "
+                    >
+                        Your Journey
+                    </p>
+
+                    <h3
+                        className="
+                            text-xl
+                            font-bold
+                            text-[var(--on-surface)]
+                        "
+                        style={{
+                            marginTop: "4px",
+                        }}
+                    >
+                        Upcoming Activities
+                    </h3>
+                </div>
+
+                <button
+                    type="button"
+                    onClick={() =>
+                        navigate(
+                            `/itinerary/${trip._id}`
+                        )
+                    }
+                    className="
+                        flex
+                        items-center
+                        gap-1
+                        text-xs
+                        font-bold
+                        text-[var(--primary)]
+                    "
+                >
+                    View all
+                    <ChevronRight size={15} />
+                </button>
+            </div>
+
+            {activities.length > 0 ? (
+                <div className="space-y-3">
+                    {activities.map(
+                        (day, index) => (
+                            <div
+                                key={
+                                    day._id ||
+                                    day.id ||
+                                    index
+                                }
+                                className="
+                                    rounded-2xl
+                                    bg-[var(--input-bg)]
+                                    border
+                                    border-[var(--border)]
+                                "
+                                style={{
+                                    padding:
+                                        "14px",
+                                }}
+                            >
+                                <div
+                                    className="
+                                        flex
+                                        items-center
+                                        gap-3
+                                    "
+                                >
+                                    <div
+                                        className="
+                                            w-10
+                                            h-10
+                                            rounded-xl
+                                            bg-[var(--primary-container)]
+                                            text-[var(--primary)]
+                                            flex
+                                            items-center
+                                            justify-center
+                                            shrink-0
+                                        "
+                                    >
+                                        <Calendar
+                                            size={
+                                                18
+                                            }
+                                        />
+                                    </div>
+
+                                    <div className="flex-1">
+                                        <p
+                                            className="
+                                                text-sm
+                                                font-bold
+                                                text-[var(--on-surface)]
+                                            "
+                                        >
+                                            {day.title ||
+                                                `Day ${
+                                                    index +
+                                                    1
+                                                }`}
+                                        </p>
+
+                                        <p
+                                            className="
+                                                text-xs
+                                                text-[var(--on-surface-variant)]
+                                            "
+                                            style={{
+                                                marginTop:
+                                                    "3px",
+                                            }}
+                                        >
+                                            {day.description ||
+                                                day.date ||
+                                                "Planned activity"}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        )
+                    )}
+                </div>
+            ) : (
+                <div
+                    className="
+                        rounded-2xl
+                        bg-[var(--input-bg)]
+                        text-center
+                    "
+                    style={{
+                        padding: "30px 20px",
+                    }}
+                >
+                    <Route
+                        size={28}
+                        className="
+                            mx-auto
+                            text-[var(--on-surface-variant)]
+                        "
+                    />
+
+                    <p
+                        className="
+                            text-sm
+                            font-bold
+                            text-[var(--on-surface)]
+                        "
+                        style={{
+                            marginTop: "10px",
+                        }}
+                    >
+                        Your itinerary isn't ready yet
+                    </p>
+
+                    <p
+                        className="
+                            text-xs
+                            text-[var(--on-surface-variant)]
+                        "
+                        style={{
+                            marginTop: "5px",
+                        }}
+                    >
+                        Start planning your daily activities.
+                    </p>
+
+                    <button
+                        type="button"
+                        onClick={() =>
+                            navigate(
+                                `/itinerary/${trip._id}`
+                            )
+                        }
+                        className="
+                            inline-flex
+                            items-center
+                            gap-2
+                            rounded-xl
+                            bg-[var(--primary)]
+                            text-[var(--on-primary)]
+                            text-xs
+                            font-bold
+                        "
+                        style={{
+                            padding:
+                                "10px 14px",
+                            marginTop: "14px",
+                        }}
+                    >
+                        Build Itinerary
+                        <ArrowRight size={14} />
+                    </button>
+                </div>
+            )}
+        </div>
+    );
+}
 
 function ActionCard({
     icon,
@@ -130,6 +821,92 @@ function ActionCard({
     );
 }
 
+/* ============================================================
+   PLACE SEARCH SUGGESTION
+============================================================ */
+
+function PlaceSuggestion({
+    place,
+    onClick,
+}) {
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            className="
+                w-full
+                flex
+                items-center
+                gap-3
+                text-left
+                hover:bg-[var(--surface-container-high)]
+                transition-colors
+            "
+            style={{
+                padding: "12px 14px",
+            }}
+        >
+            <div
+                className="
+                    shrink-0
+                    flex
+                    items-center
+                    justify-center
+                    rounded-lg
+                    bg-[var(--primary-container)]
+                    text-[var(--primary)]
+                "
+                style={{
+                    width: "36px",
+                    height: "36px",
+                }}
+            >
+                <MapPin size={17} />
+            </div>
+
+            <div className="min-w-0 flex-1">
+                <p
+                    className="
+                        text-sm
+                        font-bold
+                        text-[var(--on-surface)]
+                        truncate
+                    "
+                >
+                    {place.name}
+                </p>
+
+                {(place.country || place.region) && (
+                    <p
+                        className="
+                            text-xs
+                            text-[var(--on-surface-variant)]
+                            truncate
+                        "
+                        style={{
+                            marginTop: "2px",
+                        }}
+                    >
+                        {[
+                            place.region,
+                            place.country,
+                        ]
+                            .filter(Boolean)
+                            .join(", ")}
+                    </p>
+                )}
+            </div>
+
+            <ChevronRight
+                size={16}
+                className="
+                    shrink-0
+                    text-[var(--on-surface-variant)]
+                "
+            />
+        </button>
+    );
+}
 
 /* ============================================================
    DASHBOARD
@@ -138,33 +915,53 @@ function ActionCard({
 function Dashboard() {
     const navigate = useNavigate();
 
-    const [searchDest, setSearchDest] = useState("");
+    const [searchDest, setSearchDest] =
+        useState("");
+
+    const [suggestions, setSuggestions] =
+        useState([]);
+
+    const [searchLoading, setSearchLoading] =
+        useState(false);
+
+    const [showSuggestions, setShowSuggestions] =
+        useState(false);
 
     const [user] = useState(() => {
-        const storedUser =
-            localStorage.getItem("user") ||
-            sessionStorage.getItem("user");
+        try {
+            const storedUser =
+                localStorage.getItem("user") ||
+                sessionStorage.getItem("user");
 
-        return storedUser
-            ? JSON.parse(storedUser)
-            : null;
+            return storedUser
+                ? JSON.parse(storedUser)
+                : null;
+        } catch {
+            return null;
+        }
     });
 
     const [trips, setTrips] = useState([]);
-    const [loading, setLoading] = useState(true);
 
+    const [loading, setLoading] =
+        useState(true);
 
-    /* ============================================================
-       LOAD TRIPS
-    ============================================================ */
+    /* ========================================================
+       LOAD USER TRIPS
+    ======================================================== */
 
     useEffect(() => {
         async function loadTrips() {
             try {
-                const data = await getMyTrips();
+                const data =
+                    await getMyTrips();
 
-                if (data.success) {
-                    setTrips(data.trips || []);
+                if (data?.success) {
+                    setTrips(
+                        Array.isArray(data.trips)
+                            ? data.trips
+                            : []
+                    );
                 }
             } catch (error) {
                 console.error(
@@ -179,99 +976,200 @@ function Dashboard() {
         loadTrips();
     }, []);
 
-
-    /* ============================================================
-       ACTIVE TRIP
-    ============================================================ */
+    /* ========================================================
+       ACTIVE / UPCOMING TRIP
+    ======================================================== */
 
     const activeTrip =
         trips.length > 0
             ? trips[0]
             : null;
 
-
-    /* ============================================================
-       DASHBOARD VALUES
-    ============================================================ */
-
-    const readinessScore =
-        activeTrip?.travelReadinessScore ?? 78;
-
-    const sustainabilityScore =
-        activeTrip?.sustainabilityScore ?? 82;
-
-    const totalBudget =
-        activeTrip?.budget ?? 50000;
-
-    const spentBudget =
-        activeTrip
-            ? Math.round(totalBudget * 0.42)
-            : 21000;
-
-    const remainingBudget =
-        Math.max(
-            totalBudget - spentBudget,
-            0
-        );
-
-    const budgetHealth =
-        totalBudget > 0
-            ? Math.round(
-                  (spentBudget / totalBudget) *
-                      100
-              )
-            : 0;
-
-
-    /* ============================================================
+    /* ========================================================
        USER NAME
-    ============================================================ */
+    ======================================================== */
 
     const firstName =
         user?.name?.split(" ")[0] ||
         user?.username?.split(" ")[0] ||
         "Traveler";
 
+    /* ========================================================
+       PLACE SEARCH
+    ======================================================== */
+        useEffect(() => {
+            const query = searchDest.trim();
 
-    /* ============================================================
-       SEARCH
-    ============================================================ */
+            if (query.length < 2) {
+                setSuggestions([]);
+                setSearchLoading(false);
+                return;
+            }
+
+            const controller = new AbortController();
+
+            const timer = setTimeout(async () => {
+                try {
+                    setSearchLoading(true);
+
+                    const token =
+                        localStorage.getItem("token") ||
+                        sessionStorage.getItem("token");
+
+                    const headers = {
+                        Accept: "application/json",
+                    };
+
+                    if (token) {
+                        headers.Authorization = `Bearer ${token}`;
+                    }
+
+                    const response = await fetch(
+                        `${SEARCH_API}?q=${encodeURIComponent(query)}`,
+                        {
+                            method: "GET",
+                            headers,
+                            credentials: "include",
+                            signal: controller.signal,
+                        }
+                    );
+
+                    if (!response.ok) {
+                        throw new Error(
+                            `Place search failed: ${response.status}`
+                        );
+                    }
+
+                    const data = await response.json();
+
+                    console.log("Place search response:", data);
+
+                    const places =
+                        Array.isArray(data)
+                            ? data
+                            : Array.isArray(data?.places)
+                            ? data.places
+                            : Array.isArray(data?.results)
+                            ? data.results
+                            : Array.isArray(data?.data)
+                            ? data.data
+                            : Array.isArray(data?.data?.places)
+                            ? data.data.places
+                            : [];
+
+                    setSuggestions(places);
+                } catch (error) {
+                    if (error.name !== "AbortError") {
+                        console.error(
+                            "Place search error:",
+                            error
+                        );
+
+                        setSuggestions([]);
+                    }
+                } finally {
+                    setSearchLoading(false);
+                }
+            }, 300);
+
+            return () => {
+                clearTimeout(timer);
+                controller.abort();
+            };
+        }, [searchDest]);
+
+    /* ========================================================
+       SEARCH SUBMIT
+    ======================================================== */
 
     const handleSearchSubmit = (e) => {
         e.preventDefault();
 
-        if (searchDest.trim()) {
-            navigate(
-                `/plan-trip?destination=${encodeURIComponent(
-                    searchDest.trim()
-                )}`
-            );
-        } else {
+        const destination =
+            searchDest.trim();
+
+        if (!destination) {
             navigate("/plan-trip");
+            return;
         }
+
+        navigate(
+            `/plan-trip?destination=${encodeURIComponent(
+                destination
+            )}`
+        );
+
+        setShowSuggestions(false);
     };
 
+    /* ========================================================
+       SELECT SEARCH SUGGESTION
+    ======================================================== */
 
-    /* ============================================================
-       BUDGET CATEGORY DATA
-    ============================================================ */
+    const handleSelectSuggestion =
+        (place) => {
+            const destination =
+                place.name || "";
 
-    const budgetCategories = useMemo(
-        () => [
-            {
-                name: "Lodging",
-                amount: 12000,
-                percentage: 57,
-            },
-            {
-                name: "Food & Fun",
-                amount: 9000,
-                percentage: 43,
-            },
-        ],
-        []
-    );
+            setSearchDest(destination);
+            setShowSuggestions(false);
 
+            navigate(
+                `/plan-trip?destination=${encodeURIComponent(
+                    destination
+                )}`
+            );
+        };
+
+    /* ========================================================
+       TRIP VALUES
+    ======================================================== */
+
+    const tripDays =
+        activeTrip?.duration ??
+        activeTrip?.days ??
+        0;
+
+    const travelers =
+        activeTrip?.travelers ?? 0;
+
+    const budget =
+        Number(activeTrip?.budget || 0);
+
+    const travelStyle =
+        activeTrip?.travelStyle ||
+        "Not specified";
+
+    /* ========================================================
+       TRIP PROGRESS
+
+       If backend provides progress fields, use them.
+       Otherwise show a neutral value rather than fake data.
+    ======================================================== */
+
+    const tripProgress =
+        typeof activeTrip?.progress === "number"
+            ? Math.min(
+                  Math.max(
+                      activeTrip.progress,
+                      0
+                  ),
+                  100
+              )
+            : typeof activeTrip?.completionPercentage ===
+              "number"
+            ? Math.min(
+                  Math.max(
+                      activeTrip.completionPercentage,
+                      0
+                  ),
+                  100
+              )
+            : 0;
+
+    /* ========================================================
+       RENDER
+    ======================================================== */
 
     return (
         <Layout>
@@ -293,6 +1191,7 @@ function Dashboard() {
 
                 {/* =================================================
                     HERO
+                    KEPT AS-IS
                 ================================================= */}
 
                 <section
@@ -443,117 +1342,225 @@ function Dashboard() {
 
                         {/* Search */}
 
-                        <form
-                            onSubmit={
-                                handleSearchSubmit
-                            }
+                        <div
                             className="
+                                relative
                                 w-full
                                 max-w-3xl
-                                flex
-                                flex-col
-                                sm:flex-row
-                                items-center
-                                rounded-3xl
-                                sm:rounded-full
-                                border
-                                border-[var(--border)]
-                                bg-[var(--card-bg)]
-                                shadow-2xl
-                                gap-2
                             "
-                            style={{
-                                padding: "8px",
-                            }}
                         >
-                            <div
+                            <form
+                                onSubmit={
+                                    handleSearchSubmit
+                                }
                                 className="
-                                    flex
-                                    items-center
-                                    flex-1
                                     w-full
+                                    flex
+                                    flex-col
+                                    sm:flex-row
+                                    items-center
+                                    rounded-3xl
+                                    sm:rounded-full
+                                    border
+                                    border-[var(--border)]
+                                    bg-[var(--card-bg)]
+                                    shadow-2xl
+                                    gap-2
                                 "
                                 style={{
-                                    padding:
-                                        "0 16px",
+                                    padding: "8px",
                                 }}
                             >
-                                <Search
-                                    size={22}
+                                <div
                                     className="
-                                        shrink-0
-                                        text-[var(--on-surface-variant)]
-                                    "
-                                    style={{
-                                        marginRight:
-                                            "12px",
-                                    }}
-                                />
-
-                                <input
-                                    className="
+                                        flex
+                                        items-center
+                                        flex-1
                                         w-full
-                                        bg-transparent
-                                        border-none
-                                        text-[var(--on-surface)]
-                                        placeholder:text-[var(--on-surface-variant)]
-                                        outline-none
-                                        text-base
                                     "
                                     style={{
                                         padding:
-                                            "13px 0",
+                                            "0 16px",
                                     }}
-                                    placeholder="Where to? Goa, Paris, Tokyo..."
-                                    type="text"
-                                    value={searchDest}
-                                    onChange={(e) =>
-                                        setSearchDest(
-                                            e.target
-                                                .value
-                                        )
-                                    }
-                                />
-                            </div>
+                                >
+                                    <Search
+                                        size={22}
+                                        className="
+                                            shrink-0
+                                            text-[var(--on-surface-variant)]
+                                        "
+                                        style={{
+                                            marginRight:
+                                                "12px",
+                                        }}
+                                    />
 
-                            <button
-                                type="submit"
-                                className="
-                                    w-full
-                                    sm:w-auto
-                                    bg-gradient-to-r
-                                    from-orange-500
-                                    to-orange-600
-                                    text-white
-                                    rounded-2xl
-                                    sm:rounded-full
-                                    font-bold
-                                    shadow-lg
-                                    hover:scale-[1.02]
-                                    transition-transform
-                                    shrink-0
-                                "
-                                style={{
-                                    padding:
-                                        "14px 30px",
-                                }}
-                            >
-                                Plan Trip
-                            </button>
-                        </form>
+                                    <input
+                                        className="
+                                            w-full
+                                            bg-transparent
+                                            border-none
+                                            text-[var(--on-surface)]
+                                            placeholder:text-[var(--on-surface-variant)]
+                                            outline-none
+                                            text-base
+                                        "
+                                        style={{
+                                            padding:
+                                                "13px 0",
+                                        }}
+                                        placeholder="Where to? Goa, Paris, Tokyo..."
+                                        type="text"
+                                        value={
+                                            searchDest
+                                        }
+                                        onFocus={() =>
+                                            setShowSuggestions(
+                                                true
+                                            )
+                                        }
+                                        onChange={(e) =>
+                                            setSearchDest(
+                                                e.target
+                                                    .value
+                                            )
+                                        }
+                                    />
+                                </div>
+
+                                <button
+                                    type="submit"
+                                    className="
+                                        w-full
+                                        sm:w-auto
+                                        bg-[var(--primary)]
+                                        hover:bg-[var(--primary-hover)]
+                                        text-[var(--on-primary)]
+                                        rounded-2xl
+                                        sm:rounded-full
+                                        font-bold
+                                        shadow-lg
+                                        hover:scale-[1.02]
+                                        transition-transform
+                                        shrink-0
+                                    "
+                                    style={{
+                                        padding:
+                                            "14px 30px",
+                                    }}
+                                >
+                                    Plan Trip
+                                </button>
+                            </form>
+
+                            {/* Search Suggestions */}
+
+                            {showSuggestions &&
+                                searchDest.trim()
+                                    .length >= 2 && (
+                                    <div
+                                        className="
+                                            absolute
+                                            top-full
+                                            left-0
+                                            right-0
+                                            z-50
+                                            mt-2
+                                            overflow-hidden
+                                            rounded-2xl
+                                            border
+                                            border-[var(--border)]
+                                            bg-[var(--card-bg)]
+                                            shadow-2xl
+                                            text-left
+                                        "
+                                    >
+                                        {searchLoading && (
+                                            <div
+                                                className="
+                                                    flex
+                                                    items-center
+                                                    gap-2
+                                                    text-sm
+                                                    text-[var(--on-surface-variant)]
+                                                "
+                                                style={{
+                                                    padding:
+                                                        "16px",
+                                                }}
+                                            >
+                                                <Loader2
+                                                    size={
+                                                        17
+                                                    }
+                                                    className="animate-spin"
+                                                />
+
+                                                Searching
+                                                places...
+                                            </div>
+                                        )}
+
+                                        {!searchLoading &&
+                                            suggestions.length >
+                                                0 &&
+                                            suggestions.map(
+                                                (
+                                                    place,
+                                                    index
+                                                ) => (
+                                                    <PlaceSuggestion
+                                                        key={
+                                                            place.id ||
+                                                            place._id ||
+                                                            `${place.name}-${index}`
+                                                        }
+                                                        place={
+                                                            place
+                                                        }
+                                                        onClick={() =>
+                                                            handleSelectSuggestion(
+                                                                place
+                                                            )
+                                                        }
+                                                    />
+                                                )
+                                            )}
+
+                                        {!searchLoading &&
+                                            suggestions.length ===
+                                                0 && (
+                                                <div
+                                                    className="
+                                                        text-sm
+                                                        text-[var(--on-surface-variant)]
+                                                    "
+                                                    style={{
+                                                        padding:
+                                                            "16px",
+                                                    }}
+                                                >
+                                                    No destinations
+                                                    found.
+                                                </div>
+                                            )}
+                                    </div>
+                                )}
+                        </div>
                     </div>
                 </section>
 
 
                 {/* =================================================
-                    MAIN CONTENT WRAPPER
+                    MAIN CONTENT
                 ================================================= */}
 
                 <div
                     className="
                         w-full
-                        max-w-7xl
+                        
                         mx-auto
+                        justify-center
                     "
                     style={{
                         padding:
@@ -562,1099 +1569,122 @@ function Dashboard() {
                 >
 
                     {/* =================================================
-                        SMART WEATHER ALERT
+                        NO TRIP
                     ================================================= */}
 
-                    <section
-                        style={{
-                            marginBottom:
-                                "28px",
-                        }}
-                    >
-                        <div
-                            className="
-                                relative
-                                overflow-hidden
-                                rounded-3xl
-                                border
-                                border-amber-500/30
-                                bg-amber-500/10
-                                shadow-md
-                            "
-                            style={{
-                                padding:
-                                    "20px 22px",
-                            }}
-                        >
-
-                            <div
-                                className="
-                                    flex
-                                    flex-col
-                                    lg:flex-row
-                                    lg:items-center
-                                    justify-between
-                                    gap-5
-                                "
-                            >
-
-                                <div
-                                    className="
-                                        flex
-                                        items-start
-                                        gap-4
-                                    "
-                                >
-                                    <div
-                                        className="
-                                            flex
-                                            items-center
-                                            justify-center
-                                            rounded-2xl
-                                            bg-amber-500/15
-                                            text-amber-500
-                                            shrink-0
-                                        "
-                                        style={{
-                                            width:
-                                                "48px",
-                                            height:
-                                                "48px",
-                                        }}
-                                    >
-                                        <CloudRain
-                                            size={24}
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <div
-                                            className="
-                                                flex
-                                                items-center
-                                                gap-2
-                                                flex-wrap
-                                            "
-                                        >
-                                            <h3
-                                                className="
-                                                    font-bold
-                                                    text-[var(--on-surface)]
-                                                "
-                                            >
-                                                Weather Advisory
-                                            </h3>
-
-                                            <span
-                                                className="
-                                                    text-[10px]
-                                                    font-bold
-                                                    uppercase
-                                                    tracking-wider
-                                                    text-amber-500
-                                                    bg-amber-500/10
-                                                    rounded-full
-                                                "
-                                                style={{
-                                                    padding:
-                                                        "4px 8px",
-                                                }}
-                                            >
-                                                Day 2
-                                            </span>
-                                        </div>
-
-                                        <p
-                                            className="
-                                                text-sm
-                                                text-[var(--on-surface-variant)]
-                                            "
-                                            style={{
-                                                marginTop:
-                                                    "5px",
-                                            }}
-                                        >
-                                            Light rain is
-                                            expected during
-                                            your trip. Keep
-                                            a compact umbrella
-                                            and waterproof
-                                            layer ready.
-                                        </p>
-
-                                        <div
-                                            className="
-                                                flex
-                                                items-center
-                                                gap-4
-                                                flex-wrap
-                                                text-xs
-                                                text-[var(--on-surface-variant)]
-                                            "
-                                            style={{
-                                                marginTop:
-                                                    "10px",
-                                            }}
-                                        >
-                                            <span className="flex items-center gap-1.5">
-                                                <CloudRain
-                                                    size={14}
-                                                />
-                                                65% rain
-                                            </span>
-
-                                            <span className="flex items-center gap-1.5">
-                                                <Thermometer
-                                                    size={14}
-                                                />
-                                                24°C
-                                            </span>
-
-                                            <span className="flex items-center gap-1.5">
-                                                <Wind
-                                                    size={14}
-                                                />
-                                                Moderate wind
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-
-
-                                <div
-                                    className="
-                                        flex
-                                        items-center
-                                        gap-3
-                                        flex-wrap
-                                    "
-                                >
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            navigate(
-                                                "/packing-list"
-                                            )
-                                        }
-                                        className="
-                                            flex
-                                            items-center
-                                            gap-2
-                                            rounded-xl
-                                            border
-                                            border-[var(--border)]
-                                            bg-[var(--card-bg)]
-                                            text-[var(--on-surface)]
-                                            text-xs
-                                            font-bold
-                                            hover:bg-[var(--pill-bg)]
-                                        "
-                                        style={{
-                                            padding:
-                                                "10px 14px",
-                                        }}
-                                    >
-                                        <Umbrella
-                                            size={15}
-                                        />
-
-                                        Check Gear
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            navigate(
-                                                "/weather"
-                                            )
-                                        }
-                                        className="
-                                            flex
-                                            items-center
-                                            gap-2
-                                            rounded-xl
-                                            bg-amber-500
-                                            text-white
-                                            text-xs
-                                            font-bold
-                                            hover:opacity-90
-                                        "
-                                        style={{
-                                            padding:
-                                                "10px 14px",
-                                        }}
-                                    >
-                                        Weather Details
-
-                                        <ArrowRight
-                                            size={15}
-                                        />
-                                    </button>
-                                </div>
-
-                            </div>
-                        </div>
-                    </section>
-
-
-                    {/* =================================================
-                        DASHBOARD METRICS
-                    ================================================= */}
-
-                    <section
-                        style={{
-                            marginBottom:
-                                "32px",
-                        }}
-                    >
-                        <div
-                            className="
-                                grid
-                                grid-cols-1
-                                lg:grid-cols-3
-                                gap-6
-                            "
-                        >
-
-                            {/* =========================================
-                                READINESS
-                            ========================================= */}
-
-                            <div
-                                className="
-                                    rounded-3xl
-                                    border
-                                    border-[var(--border)]
-                                    bg-[var(--card-bg)]
-                                    shadow-lg
-                                "
+                    {!loading &&
+                        !activeTrip && (
+                            <section
                                 style={{
-                                    padding:
-                                        "24px",
+                                    marginTop:
+                                        "32px",
+                                    marginBottom:
+                                        "40px",
                                 }}
                             >
                                 <div
                                     className="
-                                        flex
-                                        items-center
-                                        justify-between
-                                    "
-                                >
-                                    <div>
-                                        <p
-                                            className="
-                                                text-xs
-                                                font-bold
-                                                uppercase
-                                                tracking-wider
-                                                text-[var(--on-surface-variant)]
-                                            "
-                                        >
-                                            Travel Status
-                                        </p>
-
-                                        <h3
-                                            className="
-                                                text-xl
-                                                font-bold
-                                                text-[var(--on-surface)]
-                                            "
-                                            style={{
-                                                marginTop:
-                                                    "4px",
-                                            }}
-                                        >
-                                            Readiness Score
-                                        </h3>
-                                    </div>
-
-                                    <div
-                                        className="
-                                            flex
-                                            items-center
-                                            gap-1.5
-                                            text-emerald-500
-                                            text-xs
-                                            font-bold
-                                        "
-                                    >
-                                        <CheckCircle2
-                                            size={16}
-                                        />
-
-                                        Ready
-                                    </div>
-                                </div>
-
-
-                                <div
-                                    className="
-                                        flex
-                                        items-center
-                                        gap-6
-                                    "
-                                    style={{
-                                        margin:
-                                            "26px 0",
-                                    }}
-                                >
-                                    <div
-                                        className="
-                                            relative
-                                            w-32
-                                            h-32
-                                            rounded-full
-                                            flex
-                                            items-center
-                                            justify-center
-                                            border-[10px]
-                                            border-orange-500/20
-                                            bg-orange-500/5
-                                            shrink-0
-                                        "
-                                    >
-                                        <div className="text-center">
-                                            <span
-                                                className="
-                                                    text-4xl
-                                                    font-black
-                                                    text-[var(--primary)]
-                                                "
-                                            >
-                                                {
-                                                    readinessScore
-                                                }
-                                                %
-                                            </span>
-
-                                            <p
-                                                className="
-                                                    text-[10px]
-                                                    font-bold
-                                                    uppercase
-                                                    tracking-wider
-                                                    text-[var(--on-surface-variant)]
-                                                "
-                                            >
-                                                Ready
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <div
-                                        className="
-                                            flex-1
-                                            space-y-4
-                                        "
-                                    >
-                                        <div>
-                                            <div
-                                                className="
-                                                    flex
-                                                    justify-between
-                                                    text-xs
-                                                    mb-2
-                                                "
-                                            >
-                                                <span className="text-[var(--on-surface-variant)]">
-                                                    Packing
-                                                </span>
-
-                                                <span className="font-bold text-[var(--on-surface)]">
-                                                    85%
-                                                </span>
-                                            </div>
-
-                                            <div
-                                                className="
-                                                    h-2
-                                                    rounded-full
-                                                    bg-[var(--input-bg)]
-                                                    overflow-hidden
-                                                "
-                                            >
-                                                <div
-                                                    className="
-                                                        h-full
-                                                        rounded-full
-                                                        bg-emerald-500
-                                                    "
-                                                    style={{
-                                                        width:
-                                                            "85%",
-                                                    }}
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <div>
-                                            <div
-                                                className="
-                                                    flex
-                                                    justify-between
-                                                    text-xs
-                                                    mb-2
-                                                "
-                                            >
-                                                <span className="text-[var(--on-surface-variant)]">
-                                                    Itinerary
-                                                </span>
-
-                                                <span className="font-bold text-[var(--on-surface)]">
-                                                    70%
-                                                </span>
-                                            </div>
-
-                                            <div
-                                                className="
-                                                    h-2
-                                                    rounded-full
-                                                    bg-[var(--input-bg)]
-                                                    overflow-hidden
-                                                "
-                                            >
-                                                <div
-                                                    className="
-                                                        h-full
-                                                        rounded-full
-                                                        bg-blue-500
-                                                    "
-                                                    style={{
-                                                        width:
-                                                            "70%",
-                                                    }}
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        navigate(
-                                            "/packing-list"
-                                        )
-                                    }
-                                    className="
-                                        w-full
-                                        flex
-                                        items-center
-                                        justify-center
-                                        gap-2
-                                        rounded-xl
+                                        rounded-3xl
                                         border
                                         border-[var(--border)]
-                                        text-xs
-                                        font-bold
-                                        text-[var(--on-surface)]
-                                        hover:bg-[var(--pill-bg)]
+                                        bg-[var(--card-bg)]
+                                        shadow-lg
+                                        text-center
                                     "
                                     style={{
                                         padding:
-                                            "11px",
+                                            "50px 30px",
                                     }}
                                 >
-                                    Complete Checklist
-
-                                    <ArrowRight
-                                        size={14}
-                                    />
-                                </button>
-                            </div>
-
-
-                            {/* =========================================
-                                BUDGET
-                            ========================================= */}
-
-                            <div
-                                className="
-                                    rounded-3xl
-                                    border
-                                    border-[var(--border)]
-                                    bg-[var(--card-bg)]
-                                    shadow-lg
-                                "
-                                style={{
-                                    padding:
-                                        "24px",
-                                }}
-                            >
-                                <div
-                                    className="
-                                        flex
-                                        items-center
-                                        justify-between
-                                    "
-                                >
-                                    <div>
-                                        <p
-                                            className="
-                                                text-xs
-                                                font-bold
-                                                uppercase
-                                                tracking-wider
-                                                text-[var(--on-surface-variant)]
-                                            "
-                                        >
-                                            Financial Overview
-                                        </p>
-
-                                        <h3
-                                            className="
-                                                text-xl
-                                                font-bold
-                                                text-[var(--on-surface)]
-                                            "
-                                            style={{
-                                                marginTop:
-                                                    "4px",
-                                            }}
-                                        >
-                                            Budget Health
-                                        </h3>
-                                    </div>
-
                                     <div
-                                        className={`
+                                        className="
+                                            mx-auto
                                             flex
                                             items-center
-                                            gap-1
-                                            text-xs
-                                            font-bold
+                                            justify-center
                                             rounded-full
-                                            ${
-                                                budgetHealth >
-                                                80
-                                                    ? "bg-amber-500/15 text-amber-500"
-                                                    : "bg-emerald-500/15 text-emerald-500"
-                                            }
-                                        `}
-                                        style={{
-                                            padding:
-                                                "6px 10px",
-                                        }}
-                                    >
-                                        <TrendingDown
-                                            size={13}
-                                        />
-
-                                        {budgetHealth}%
-                                    </div>
-                                </div>
-
-
-                                <div
-                                    style={{
-                                        margin:
-                                            "25px 0 20px",
-                                    }}
-                                >
-                                    <div
-                                        className="
-                                            flex
-                                            items-end
-                                            justify-between
-                                            gap-3
-                                        "
-                                    >
-                                        <div>
-                                            <p
-                                                className="
-                                                    text-xs
-                                                    text-[var(--on-surface-variant)]
-                                                "
-                                            >
-                                                Spent
-                                            </p>
-
-                                            <p
-                                                className="
-                                                    text-3xl
-                                                    font-black
-                                                    text-[var(--on-surface)]
-                                                "
-                                            >
-                                                ₹
-                                                {spentBudget.toLocaleString()}
-                                            </p>
-                                        </div>
-
-                                        <div
-                                            className="
-                                                text-right
-                                            "
-                                        >
-                                            <p
-                                                className="
-                                                    text-xs
-                                                    text-[var(--on-surface-variant)]
-                                                "
-                                            >
-                                                Remaining
-                                            </p>
-
-                                            <p
-                                                className="
-                                                    text-lg
-                                                    font-bold
-                                                    text-emerald-500
-                                                "
-                                            >
-                                                ₹
-                                                {remainingBudget.toLocaleString()}
-                                            </p>
-                                        </div>
-                                    </div>
-
-
-                                    <div
-                                        className="
-                                            w-full
-                                            h-3
-                                            rounded-full
-                                            bg-[var(--input-bg)]
-                                            overflow-hidden
+                                            bg-[var(--primary-container)]
+                                            text-[var(--primary)]
                                         "
                                         style={{
-                                            marginTop:
-                                                "16px",
+                                            width:
+                                                "64px",
+                                            height:
+                                                "64px",
+                                            marginBottom:
+                                                "18px",
                                         }}
                                     >
-                                        <div
-                                            className="
-                                                h-full
-                                                rounded-full
-                                                bg-gradient-to-r
-                                                from-blue-500
-                                                to-emerald-500
-                                            "
-                                            style={{
-                                                width: `${Math.min(
-                                                    budgetHealth,
-                                                    100
-                                                )}%`,
-                                            }}
+                                        <Compass
+                                            size={30}
                                         />
                                     </div>
 
-                                    <div
+                                    <h2
                                         className="
-                                            flex
-                                            justify-between
-                                            text-[11px]
+                                            text-2xl
+                                            font-extrabold
+                                            text-[var(--on-surface)]
+                                        "
+                                    >
+                                        Your next adventure
+                                        starts here
+                                    </h2>
+
+                                    <p
+                                        className="
+                                            max-w-lg
+                                            mx-auto
+                                            text-sm
                                             text-[var(--on-surface-variant)]
                                         "
                                         style={{
                                             marginTop:
-                                                "7px",
+                                                "8px",
+                                            marginBottom:
+                                                "22px",
                                         }}
                                     >
-                                        <span>
-                                            ₹0
-                                        </span>
+                                        You don't have an
+                                        active trip yet.
+                                        Search for a
+                                        destination or
+                                        create your first
+                                        trip.
+                                    </p>
 
-                                        <span>
-                                            ₹
-                                            {totalBudget.toLocaleString()}
-                                        </span>
-                                    </div>
-                                </div>
-
-
-                                <div
-                                    className="
-                                        grid
-                                        grid-cols-2
-                                        gap-3
-                                    "
-                                >
-                                    {budgetCategories.map(
-                                        (category) => (
-                                            <div
-                                                key={
-                                                    category.name
-                                                }
-                                                className="
-                                                    rounded-xl
-                                                    bg-[var(--input-bg)]
-                                                "
-                                                style={{
-                                                    padding:
-                                                        "11px",
-                                                }}
-                                            >
-                                                <div
-                                                    className="
-                                                        flex
-                                                        items-center
-                                                        justify-between
-                                                    "
-                                                >
-                                                    <span
-                                                        className="
-                                                            text-xs
-                                                            text-[var(--on-surface-variant)]
-                                                        "
-                                                    >
-                                                        {
-                                                            category.name
-                                                        }
-                                                    </span>
-
-                                                    <span
-                                                        className="
-                                                            text-[10px]
-                                                            font-bold
-                                                            text-[var(--on-surface-variant)]
-                                                        "
-                                                    >
-                                                        {
-                                                            category.percentage
-                                                        }
-                                                        %
-                                                    </span>
-                                                </div>
-
-                                                <p
-                                                    className="
-                                                        font-bold
-                                                        text-[var(--on-surface)]
-                                                        text-sm
-                                                    "
-                                                    style={{
-                                                        marginTop:
-                                                            "4px",
-                                                    }}
-                                                >
-                                                    ₹
-                                                    {category.amount.toLocaleString()}
-                                                </p>
-                                            </div>
-                                        )
-                                    )}
-                                </div>
-
-
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        navigate(
-                                            "/budget"
-                                        )
-                                    }
-                                    className="
-                                        w-full
-                                        flex
-                                        items-center
-                                        justify-center
-                                        gap-2
-                                        rounded-xl
-                                        border
-                                        border-[var(--border)]
-                                        text-xs
-                                        font-bold
-                                        text-[var(--on-surface)]
-                                        hover:bg-[var(--pill-bg)]
-                                    "
-                                    style={{
-                                        padding:
-                                            "11px",
-                                        marginTop:
-                                            "14px",
-                                    }}
-                                >
-                                    Open Budget Calculator
-
-                                    <ArrowRight
-                                        size={14}
-                                    />
-                                </button>
-                            </div>
-
-
-                            {/* =========================================
-                                SUSTAINABILITY
-                            ========================================= */}
-
-                            <div
-                                className="
-                                    rounded-3xl
-                                    border
-                                    border-[var(--border)]
-                                    bg-[var(--card-bg)]
-                                    shadow-lg
-                                "
-                                style={{
-                                    padding:
-                                        "24px",
-                                }}
-                            >
-                                <div
-                                    className="
-                                        flex
-                                        items-center
-                                        justify-between
-                                    "
-                                >
-                                    <div>
-                                        <p
-                                            className="
-                                                text-xs
-                                                font-bold
-                                                uppercase
-                                                tracking-wider
-                                                text-[var(--on-surface-variant)]
-                                            "
-                                        >
-                                            Eco Travel
-                                        </p>
-
-                                        <h3
-                                            className="
-                                                text-xl
-                                                font-bold
-                                                text-[var(--on-surface)]
-                                            "
-                                            style={{
-                                                marginTop:
-                                                    "4px",
-                                            }}
-                                        >
-                                            Sustainability
-                                        </h3>
-                                    </div>
-
-                                    <TreePine
-                                        size={25}
-                                        className="text-emerald-500"
-                                    />
-                                </div>
-
-
-                                <div
-                                    className="
-                                        flex
-                                        items-center
-                                        gap-5
-                                    "
-                                    style={{
-                                        margin:
-                                            "25px 0",
-                                    }}
-                                >
-                                    <div
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            navigate(
+                                                "/plan-trip"
+                                            )
+                                        }
                                         className="
-                                            w-28
-                                            h-28
-                                            rounded-full
-                                            flex
+                                            inline-flex
                                             items-center
-                                            justify-center
-                                            border-[9px]
-                                            border-emerald-500/20
-                                            bg-emerald-500/5
-                                            shrink-0
-                                        "
-                                    >
-                                        <div className="text-center">
-                                            <span
-                                                className="
-                                                    text-3xl
-                                                    font-black
-                                                    text-emerald-500
-                                                "
-                                            >
-                                                {
-                                                    sustainabilityScore
-                                                }
-                                            </span>
-
-                                            <p
-                                                className="
-                                                    text-[9px]
-                                                    uppercase
-                                                    font-bold
-                                                    tracking-wider
-                                                    text-[var(--on-surface-variant)]
-                                                "
-                                            >
-                                                Eco Index
-                                            </p>
-                                        </div>
-                                    </div>
-
-
-                                    <div>
-                                        <div
-                                            className="
-                                                flex
-                                                items-center
-                                                gap-2
-                                                text-emerald-500
-                                                text-sm
-                                                font-bold
-                                            "
-                                        >
-                                            <Leaf
-                                                size={16}
-                                            />
-
-                                            Excellent
-                                        </div>
-
-                                        <p
-                                            className="
-                                                text-xs
-                                                leading-relaxed
-                                                text-[var(--on-surface-variant)]
-                                            "
-                                            style={{
-                                                marginTop:
-                                                    "6px",
-                                            }}
-                                        >
-                                            Your travel
-                                            choices are
-                                            reducing
-                                            environmental
-                                            impact.
-                                        </p>
-                                    </div>
-                                </div>
-
-
-                                <div
-                                    className="
-                                        grid
-                                        grid-cols-2
-                                        gap-3
-                                    "
-                                >
-                                    <div
-                                        className="
+                                            gap-2
                                             rounded-xl
-                                            bg-emerald-500/10
-                                            border
-                                            border-emerald-500/20
+                                            bg-[var(--primary)]
+                                            text-[var(--on-primary)]
+                                            font-bold
+                                            text-sm
+                                            hover:bg-[var(--primary-hover)]
                                         "
                                         style={{
                                             padding:
-                                                "11px",
+                                                "12px 18px",
                                         }}
                                     >
-                                        <Train
+                                        <PlusCircle
                                             size={17}
-                                            className="text-emerald-500"
                                         />
 
-                                        <p
-                                            className="
-                                                text-[11px]
-                                                text-[var(--on-surface-variant)]
-                                            "
-                                            style={{
-                                                marginTop:
-                                                    "5px",
-                                            }}
-                                        >
-                                            Train Travel
-                                        </p>
-
-                                        <p
-                                            className="
-                                                text-sm
-                                                font-bold
-                                                text-[var(--on-surface)]
-                                            "
-                                        >
-                                            -40% CO₂
-                                        </p>
-                                    </div>
-
-                                    <div
-                                        className="
-                                            rounded-xl
-                                            bg-emerald-500/10
-                                            border
-                                            border-emerald-500/20
-                                        "
-                                        style={{
-                                            padding:
-                                                "11px",
-                                        }}
-                                    >
-                                        <Wind
-                                            size={17}
-                                            className="text-emerald-500"
-                                        />
-
-                                        <p
-                                            className="
-                                                text-[11px]
-                                                text-[var(--on-surface-variant)]
-                                            "
-                                            style={{
-                                                marginTop:
-                                                    "5px",
-                                            }}
-                                        >
-                                            Impact
-                                        </p>
-
-                                        <p
-                                            className="
-                                                text-sm
-                                                font-bold
-                                                text-[var(--on-surface)]
-                                            "
-                                        >
-                                            Low
-                                        </p>
-                                    </div>
+                                        Create New Trip
+                                    </button>
                                 </div>
-
-
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        navigate(
-                                            "/my-trips"
-                                        )
-                                    }
-                                    className="
-                                        w-full
-                                        flex
-                                        items-center
-                                        justify-center
-                                        gap-2
-                                        rounded-xl
-                                        border
-                                        border-[var(--border)]
-                                        text-xs
-                                        font-bold
-                                        text-[var(--on-surface)]
-                                        hover:bg-[var(--pill-bg)]
-                                    "
-                                    style={{
-                                        padding:
-                                            "11px",
-                                        marginTop:
-                                            "14px",
-                                    }}
-                                >
-                                    View Trip Progress
-
-                                    <ArrowRight
-                                        size={14}
-                                    />
-                                </button>
-                            </div>
-
-                        </div>
-                    </section>
+                            </section>
+                        )}
 
 
                     {/* =================================================
@@ -1662,170 +1692,150 @@ function Dashboard() {
                     ================================================= */}
 
                     {activeTrip && (
-                        <section
-                            style={{
-                                marginBottom:
-                                    "32px",
-                            }}
-                        >
-                            <div
-                                className="
-                                    rounded-3xl
-                                    border
-                                    border-[var(--border)]
-                                    bg-[var(--card-bg)]
-                                    shadow-lg
-                                "
-                                style={{
-                                    padding:
-                                        "24px",
-                                }}
-                            >
-                                <div
-                                    className="
-                                        flex
-                                        flex-col
-                                        lg:flex-row
-                                        lg:items-center
-                                        justify-between
-                                        gap-6
-                                    "
-                                >
-                                    <div>
-                                        <div
-                                            className="
-                                                flex
-                                                items-center
-                                                gap-2
-                                                text-xs
-                                                font-bold
-                                                uppercase
-                                                tracking-wider
-                                                text-[var(--primary)]
-                                            "
-                                        >
-                                            <Clock
-                                                size={15}
-                                            />
+    <section
+        style={{
+            marginBottom: "32px",
+        }}
+    >
+        {/* Active Trip Header */}
+        <div
+            className="
+                rounded-3xl
+                border
+                border-[var(--border)]
+                bg-[var(--card-bg)]
+                shadow-lg
+            "
+            style={{
+                padding: "28px",
+                marginBottom: "20px",
+            }}
+        >
+            <div
+                className="
+                    flex
+                    flex-col
+                    lg:flex-row
+                    lg:items-center
+                    justify-between
+                    gap-6
+                "
+            >
+                <div>
+                    <div
+                        className="
+                            flex
+                            items-center
+                            gap-2
+                            text-xs
+                            font-bold
+                            uppercase
+                            tracking-wider
+                            text-[var(--primary)]
+                        "
+                    >
+                        <Clock size={15} />
 
-                                            Active Trip
-                                        </div>
+                        Active Trip
+                    </div>
 
-                                        <h2
-                                            className="
-                                                text-2xl
-                                                sm:text-3xl
-                                                font-extrabold
-                                                text-[var(--on-surface)]
-                                                flex
-                                                items-center
-                                                gap-2
-                                            "
-                                            style={{
-                                                marginTop:
-                                                    "8px",
-                                            }}
-                                        >
-                                            <MapPin
-                                                size={26}
-                                                className="text-[var(--primary)]"
-                                            />
+                    <h2
+                        className="
+                            text-2xl
+                            sm:text-3xl
+                            font-extrabold
+                            text-[var(--on-surface)]
+                            flex
+                            items-center
+                            gap-2
+                        "
+                        style={{
+                            marginTop: "8px",
+                        }}
+                    >
+                        <MapPin
+                            size={27}
+                            className="text-[var(--primary)]"
+                        />
 
-                                            {
-                                                activeTrip.destination
-                                            }
-                                        </h2>
+                        {activeTrip.destination}
+                    </h2>
 
-                                        <div
-                                            className="
-                                                flex
-                                                items-center
-                                                gap-4
-                                                flex-wrap
-                                                text-sm
-                                                text-[var(--on-surface-variant)]
-                                            "
-                                            style={{
-                                                marginTop:
-                                                    "8px",
-                                            }}
-                                        >
-                                            <span className="flex items-center gap-1.5">
-                                                <Calendar
-                                                    size={15}
-                                                />
+                    <p
+                        className="
+                            text-sm
+                            text-[var(--on-surface-variant)]
+                        "
+                        style={{
+                            marginTop: "8px",
+                        }}
+                    >
+                        Your current travel plan and
+                        everything you need for your journey.
+                    </p>
+                </div>
 
-                                                {
-                                                    activeTrip.duration
-                                                }{" "}
-                                                Days
-                                            </span>
+                <button
+                    type="button"
+                    onClick={() =>
+                        navigate(
+                            `/itinerary/${activeTrip._id}`
+                        )
+                    }
+                    className="
+                        w-full
+                        lg:w-auto
+                        flex
+                        items-center
+                        justify-center
+                        gap-2
+                        rounded-2xl
+                        bg-[var(--primary)]
+                        text-[var(--on-primary)]
+                        font-bold
+                        text-sm
+                        shadow-md
+                        hover:opacity-90
+                        transition
+                    "
+                    style={{
+                        padding: "13px 22px",
+                    }}
+                >
+                    Open Trip
 
-                                            <span>
-                                                •
-                                            </span>
+                    <ArrowRight size={16} />
+                </button>
+            </div>
+        </div>
 
-                                            <span>
-                                                {
-                                                    activeTrip.travelers
-                                                }{" "}
-                                                Travelers
-                                            </span>
+        {/* Trip Information */}
+        <div
+    className="
+        grid
+        grid-cols-1
+        lg:grid-cols-12
+        gap-6
+        items-start
+"
+>
+    <div className="lg:col-span-5">
+        <TripSnapshot trip={activeTrip} />
+    </div>
 
-                                            <span>
-                                                •
-                                            </span>
+    <div className="lg:col-span-3">
+        <TripProgress trip={activeTrip} />
+    </div>
 
-                                            <span className="capitalize">
-                                                {
-                                                    activeTrip.travelStyle
-                                                }{" "}
-                                                Style
-                                            </span>
-                                        </div>
-                                    </div>
-
-
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            navigate(
-                                                `/itinerary/${activeTrip._id}`
-                                            )
-                                        }
-                                        className="
-                                            w-full
-                                            lg:w-auto
-                                            flex
-                                            items-center
-                                            justify-center
-                                            gap-2
-                                            rounded-2xl
-                                            bg-gradient-to-r
-                                            from-orange-500
-                                            to-orange-600
-                                            text-white
-                                            font-bold
-                                            text-sm
-                                            shadow-md
-                                            hover:scale-[1.02]
-                                            transition-transform
-                                        "
-                                        style={{
-                                            padding:
-                                                "13px 22px",
-                                        }}
-                                    >
-                                        Interactive Itinerary
-
-                                        <ArrowRight
-                                            size={16}
-                                        />
-                                    </button>
-                                </div>
-                            </div>
-                        </section>
-                    )}
+    <div className="lg:col-span-4">
+        <UpcomingActivities
+            trip={activeTrip}
+            navigate={navigate}
+        />
+    </div>
+</div>
+    </section>
+)}
 
 
                     {/* =================================================
@@ -1878,7 +1888,8 @@ function Dashboard() {
                                     text-[var(--on-surface-variant)]
                                 "
                             >
-                                Everything you need for your journey.
+                                Everything you need for
+                                your journey.
                             </p>
                         </div>
 
@@ -1914,7 +1925,7 @@ function Dashboard() {
                                     />
                                 }
                                 title="Budget Calculator"
-                                description="Track expenses and monitor spending."
+                                description="Track expenses and manage your trip budget."
                                 onClick={() =>
                                     navigate(
                                         "/budget"
@@ -1929,7 +1940,7 @@ function Dashboard() {
                                     />
                                 }
                                 title="My Trips"
-                                description="Manage trips and track your progress."
+                                description="Manage all your trips and travel plans."
                                 onClick={() =>
                                     navigate(
                                         "/my-trips"
@@ -1967,7 +1978,6 @@ function Dashboard() {
                                 }
                             />
                         </div>
-
                     </section>
 
                 </div>

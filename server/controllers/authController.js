@@ -211,8 +211,124 @@ const getProfile = async (req, res) => {
     }
 };
 
+const updateProfile = async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        const {
+            fullName,
+            email,
+            city,
+            country,
+            phoneNumber,
+            profileImage,
+        } = req.body;
+
+        const user = await User.findById(userId);
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found.",
+            });
+        }
+
+        // Update only fields that were provided
+        if (fullName !== undefined) {
+            const trimmedName = fullName.trim();
+
+            if (!trimmedName) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Full name cannot be empty.",
+                });
+            }
+
+            user.fullName = trimmedName;
+        }
+
+        if (email !== undefined) {
+            const normalizedEmail =
+                email.trim().toLowerCase();
+
+            if (!normalizedEmail) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Email cannot be empty.",
+                });
+            }
+
+            // Check if another account already uses this email
+            const existingUser = await User.findOne({
+                email: normalizedEmail,
+                _id: { $ne: userId },
+            });
+
+            if (existingUser) {
+                return res.status(409).json({
+                    success: false,
+                    message: "Email already exists.",
+                });
+            }
+
+            user.email = normalizedEmail;
+        }
+
+        if (city !== undefined) {
+            user.city = city.trim();
+        }
+
+        if (country !== undefined) {
+            user.country = country.trim();
+        }
+
+        if (phoneNumber !== undefined) {
+            user.phoneNumber = phoneNumber.trim();
+        }
+
+        if (profileImage !== undefined) {
+            user.profileImage = profileImage;
+        }
+
+        const updatedUser = await user.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Profile updated successfully.",
+            user: {
+                id: updatedUser._id,
+                fullName: updatedUser.fullName,
+                email: updatedUser.email,
+                city: updatedUser.city,
+                country: updatedUser.country,
+                phoneNumber: updatedUser.phoneNumber,
+                profileImage: updatedUser.profileImage,
+                createdAt: updatedUser.createdAt,
+            },
+        });
+    } catch (error) {
+        // MongoDB duplicate email
+        if (error.code === 11000) {
+            return res.status(409).json({
+                success: false,
+                message: "Email already exists.",
+            });
+        }
+
+        console.error("Update Profile Error:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to update profile.",
+        });
+    }
+};
+
+
 module.exports = {
     registerUser,
     loginUser,
-    getProfile
+    getProfile,
+    updateProfile
 };
+

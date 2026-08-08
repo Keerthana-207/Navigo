@@ -355,6 +355,11 @@ const initialExpenses = [
 ];
 
 import { getMyTrips } from "../../services/tripApi";
+import {
+    getTripBudget,
+    addExpense,
+    addBudgetCategory,
+} from "../../services/budgetApi";
 
 export default function NavigoBudget() {
     const { isDark } = useTheme();
@@ -364,35 +369,139 @@ export default function NavigoBudget() {
         travelers: 3,
         style: "Standard Trip",
     });
+    const [tripId, setTripId] = useState(null);
+    const [loadingBudget, setLoadingBudget] = useState(true);
+
+    const formatExpenseTime = (date) => {
+    if (!date) return "Recently";
+
+    const diff =
+        Date.now() -
+        new Date(date).getTime();
+
+    const minutes = Math.floor(
+        diff / 60000
+    );
+
+    if (minutes < 1) {
+        return "Just now";
+    }
+
+    if (minutes < 60) {
+        return `${minutes}m ago`;
+    }
+
+    const hours = Math.floor(
+        minutes / 60
+    );
+
+    if (hours < 24) {
+        return `${hours}h ago`;
+    }
+
+    const days = Math.floor(
+        hours / 24
+    );
+
+    return `${days}d ago`;
+};
 
     useEffect(() => {
-        async function loadActiveTrip() {
-            try {
-                const res = await getMyTrips();
-                if (res.success && res.trips && res.trips.length > 0) {
-                    const latest = res.trips[0];
-                    setTrip({
-                        destination: latest.destination,
-                        days: latest.duration || 5,
-                        travelers: latest.travelers || 2,
-                        style: `${latest.travelStyle || "Standard"} Trip`,
-                    });
-                    if (latest.budget) {
-                        const totalB = Number(latest.budget);
-                        setCategories([
-                            { id: "stay", name: "Lodging", icon: "Bed", allocated: Math.round(totalB * 0.4), spent: 12000, color: "#f97316" },
-                            { id: "food", name: "Food & Dining", icon: "Food", allocated: Math.round(totalB * 0.3), spent: 7500, color: "#3b82f6" },
-                            { id: "travel", name: "Transport", icon: "Plane", allocated: Math.round(totalB * 0.15), spent: 4500, color: "#10b981" },
-                            { id: "activities", name: "Activities", icon: "Activity", allocated: Math.round(totalB * 0.15), spent: 3000, color: "#a855f7" },
-                        ]);
-                    }
+    async function loadActiveTrip() {
+        try {
+            setLoadingBudget(true);
+
+            const res = await getMyTrips();
+
+            if (
+                res?.success &&
+                Array.isArray(res.trips) &&
+                res.trips.length > 0
+            ) {
+                const latest = res.trips[0];
+
+                setTripId(latest._id);
+
+                setTrip({
+                    destination:
+                        latest.destination || "Trip",
+
+                    days:
+                        Number(latest.duration) || 1,
+
+                    travelers:
+                        Number(latest.travelers) || 1,
+
+                    style: `${latest.travelStyle || "Standard"} Trip`,
+                });
+
+                const budgetDetails =
+                    latest.budgetDetails || {};
+
+                const loadedCategories =
+                    Array.isArray(
+                        budgetDetails.categories
+                    )
+                        ? budgetDetails.categories
+                        : [];
+
+                const loadedExpenses =
+                    Array.isArray(
+                        budgetDetails.expenses
+                    )
+                        ? budgetDetails.expenses
+                        : [];
+
+                setCategories(
+                    loadedCategories
+                );
+
+                setExpenses(
+                    loadedExpenses.map(
+                        (expense, index) => ({
+                            id:
+                                expense._id ||
+                                `${Date.now()}-${index}`,
+
+                            category:
+                                expense.category,
+
+                            note:
+                                expense.note ||
+                                "Expense",
+
+                            amount:
+                                Number(
+                                    expense.amount
+                                ) || 0,
+
+                            time: formatExpenseTime(
+                                expense.createdAt
+                            ),
+                        })
+                    )
+                );
+
+                if (
+                    loadedCategories.length > 0
+                ) {
+                    setSelectedCategory(
+                        loadedCategories[0].id
+                    );
                 }
-            } catch (e) {
-                console.error("Budget load trip error:", e);
             }
+        } catch (error) {
+            console.error(
+                "Budget load error:",
+                error
+            );
+        } finally {
+            setLoadingBudget(false);
         }
-        loadActiveTrip();
-    }, []);
+    }
+
+    loadActiveTrip();
+}, []);
 
     const [categories, setCategories] =
         useState(initialCategories);
@@ -482,103 +591,161 @@ export default function NavigoBudget() {
         return `conic-gradient(${stops.join(", ")})`;
     }, [categories, totals.spent]);
 
-    const handleAddExpense = (e) => {
-        e.preventDefault();
+    const handleAddExpense = async (e) => {
+    e.preventDefault();
 
-        const amount = parseFloat(expenseAmount);
+    const amount = Number(expenseAmount);
 
-        if (!selectedCategory) {
-            alert("Please select a category");
-            return;
-        }
+    if (!tripId) {
+        alert("No trip selected");
+        return;
+    }
 
-        if (!amount || amount <= 0) {
-            alert("Please enter a valid amount");
-            return;
-        }
+    if (!selectedCategory) {
+        alert("Please select a category");
+        return;
+    }
 
-        const cat = categories.find(
-            (c) => c.id === selectedCategory
-        );
+    if (!amount || amount <= 0) {
+        alert("Please enter a valid amount");
+        return;
+    }
 
-        const noteText =
-            expenseNote.trim() ||
-            (cat ? cat.name : "Expense");
+    const cat = categories.find(
+        (c) => c.id === selectedCategory
+    );
 
-        setCategories((prev) =>
-            prev.map((c) =>
-                c.id === selectedCategory
-                    ? {
-                          ...c,
-                          spent:
-                              c.spent + amount,
-                      }
-                    : c
-            )
-        );
+    const noteText =
+        expenseNote.trim() ||
+        (cat ? cat.name : "Expense");
 
-        setExpenses((prev) => [
+    try {
+        const res = await addExpense(
+            tripId,
             {
-                id: Date.now().toString(),
                 category: selectedCategory,
                 note: noteText,
                 amount,
-                time: "Just now",
-            },
-            ...prev,
-        ]);
-
-        setExpenseAmount("");
-        setExpenseNote("");
-    };
-
-    const handleAddNewCategory = () => {
-        const name = window.prompt(
-            "New category name:"
+            }
         );
 
-        if (!name || !name.trim()) return;
+        if (res.success) {
+            setCategories(
+                res.budgetDetails.categories
+            );
 
-        const allocatedStr = window.prompt(
-            `Allocated budget for "${name.trim()}" (₹):`,
-            "5000"
+            setExpenses(
+                res.budgetDetails.expenses.map(
+                    (expense, index) => ({
+                        id:
+                            expense._id ||
+                            `${Date.now()}-${index}`,
+
+                        category:
+                            expense.category,
+
+                        note:
+                            expense.note ||
+                            "Expense",
+
+                        amount:
+                            Number(
+                                expense.amount
+                            ),
+
+                        time: formatExpenseTime(
+                            expense.createdAt
+                        ),
+                    })
+                )
+            );
+
+            setExpenseAmount("");
+            setExpenseNote("");
+        }
+    } catch (error) {
+        console.error(
+            "Add expense error:",
+            error
         );
 
-        const allocated =
-            parseFloat(allocatedStr);
+        alert(
+            error.message ||
+                "Failed to add expense"
+        );
+    }
+};
 
-        if (!allocated || allocated <= 0) return;
+    const handleAddNewCategory = async () => {
+    if (!tripId) {
+        alert("No trip selected");
+        return;
+    }
 
-        const id =
-            name
-                .trim()
-                .toLowerCase()
-                .replace(/\s+/g, "-") +
-            "-" +
-            Date.now();
+    const name = window.prompt(
+        "New category name:"
+    );
 
-        const color =
-            PALETTE[
-                categories.length %
-                    PALETTE.length
-            ];
+    if (!name || !name.trim()) {
+        return;
+    }
 
-        const newCat = {
-            id,
-            name: name.trim(),
-            icon: "Tag",
-            allocated,
-            spent: 0,
-            color,
-        };
+    const allocatedStr = window.prompt(
+        `Allocated budget for "${name.trim()}" (₹):`,
+        "5000"
+    );
 
-        setCategories((prev) => [
-            ...prev,
-            newCat,
-        ]);
+    const allocated =
+        Number(allocatedStr);
 
-        setSelectedCategory(id);
-    };
+    if (!allocated || allocated <= 0) {
+        return;
+    }
+
+    const color =
+        PALETTE[
+            categories.length %
+                PALETTE.length
+        ];
+
+    try {
+        const res =
+            await addBudgetCategory(
+                tripId,
+                {
+                    name: name.trim(),
+                    allocated,
+                    icon: "Tag",
+                    color,
+                }
+            );
+
+        if (res.success) {
+            setCategories(
+                res.budgetDetails.categories
+            );
+
+            const newCategory =
+                res.budgetDetails.categories[
+                    res.budgetDetails.categories.length - 1
+                ];
+
+            setSelectedCategory(
+                newCategory.id
+            );
+        }
+    } catch (error) {
+        console.error(
+            "Add category error:",
+            error
+        );
+
+        alert(
+            error.message ||
+                "Failed to add category"
+        );
+    }
+};
 
     const handleEditTrip = () => {
         const dest = window.prompt(
@@ -803,18 +970,20 @@ export default function NavigoBudget() {
                             {categories.map(
                                 (cat) => {
                                     const pct =
-                                        Math.min(
-                                            100,
-                                            Math.round(
-                                                (cat.spent /
-                                                    cat.allocated) *
-                                                    100
+                                        cat.allocated > 0
+                                            ? Math.min(
+                                                100,
+                                                Math.round(
+                                                    (Number(cat.spent || 0) /
+                                                        Number(cat.allocated)) *
+                                                        100
+                                                )
                                             )
-                                        );
+                                            : 0;
 
                                     const remaining =
-                                        cat.allocated -
-                                        cat.spent;
+                                        Number(cat.allocated || 0) -
+                                        Number(cat.spent || 0);
 
                                     const barColor =
                                         usageColor(
@@ -1259,14 +1428,14 @@ export default function NavigoBudget() {
                                 }}
                             >
                                 <div
-                                    className="w-42 h-42 rounded-full relative flex items-center justify-center transition-all duration-500"
+                                    className="w-[168px] h-[168px] rounded-full relative flex items-center justify-center transition-all duration-500"
                                     style={{
                                         background:
                                             donutGradient,
                                     }}
                                 >
                                     <div
-                                        className="w-26 h-26 rounded-full flex flex-col items-center justify-center bg-[var(--card-bg)]"
+                                        className="w-[104px] h-[104px] rounded-full flex flex-col items-center justify-center bg-[var(--card-bg)]"
                                     >
                                         <span
                                             className={`text-[11px] font-semibold ${
@@ -1509,7 +1678,7 @@ function StatCard({
             }}
         >
             <div
-                className="w-8.5 h-8.5 rounded-lg flex items-center justify-center mx-auto bg-[var(--pill-bg)] text-[var(--text-secondary-plan)]"
+                className="w-9 h-9 rounded-lg flex items-center justify-center mx-auto bg-[var(--pill-bg)] text-[var(--text-secondary-plan)]"
                 style={{
                     marginBottom: "10px",
                 }}

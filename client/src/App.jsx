@@ -11,6 +11,7 @@ import ItineraryPlanner from './pages/dashboard/Itinerary'
 import MyTrips from './pages/dashboard/MyTrips'
 import Profile from './pages/dashboard/Profile'
 import PackingChecklist from './pages/dashboard/PackingChecklist'
+import Weather from './pages/dashboard/Weather'
 
 
 
@@ -28,6 +29,7 @@ function App() {
       <Route path='/profile' element={<Profile />} />
       <Route path='/packing-list' element={<PackingChecklist />} />
       <Route path='/my-trips' element={<MyTrips />} />
+      <Route path='/weather' element={<Weather />} />
     </Routes>
     </>
   )

@@ -62,25 +62,63 @@ const createTrip = async (req, res) => {
 
         const sustainabilityScore = calculateSustainabilityScore(transport, accommodation, travelStyle);
 
-        const trip = await Trip.create({
-            user: req.user._id,
-            destination,
-            travelers,
-            duration,
-            travelStyle,
-            budget: budget === "" || budget === undefined ? null : Number(budget),
-            transport,
-            accommodation,
-            startDate: startDate ? new Date(startDate) : null,
-            endDate: endDate ? new Date(endDate) : null,
-            sustainabilityScore,
-            travelReadinessScore: 50,
-        });
+        const totalBudget = Number(req.body.budget);
 
+        const budgetDetails = {
+            categories: [
+                {
+                    id: "accommodation",
+                    name: "Accommodation",
+                    icon: "Bed",
+                    allocated: Math.round(totalBudget * 0.4),
+                    spent: 0,
+                    color: "#f97316",
+                },
+                {
+                    id: "food",
+                    name: "Food & Dining",
+                    icon: "Food",
+                    allocated: Math.round(totalBudget * 0.3),
+                    spent: 0,
+                    color: "#3b82f6",
+                },
+                {
+                    id: "transport",
+                    name: "Transport",
+                    icon: "Plane",
+                    allocated: Math.round(totalBudget * 0.15),
+                    spent: 0,
+                    color: "#10b981",
+                },
+                {
+                    id: "activities",
+                    name: "Activities",
+                    icon: "Activity",
+                    allocated: Math.round(totalBudget * 0.15),
+                    spent: 0,
+                    color: "#a855f7",
+                },
+            ],
+
+            expenses: [],
+        };
         res.status(201).json({
             success: true,
             message: "Trip created successfully",
-            trip,
+            trip:{
+                ...trip,
+                budgetDetails
+            }
+        });
+
+        const trip = await Trip.create({
+            user: req.user._id,
+            destination: req.body.destination,
+            duration: req.body.duration,
+            travelers: req.body.travelers,
+            travelStyle: req.body.travelStyle,
+            budget: totalBudget,
+            budgetDetails,
         });
 
     } catch (error) {
@@ -317,4 +355,158 @@ module.exports = {
     getTripById,
     updateTrip,
     deleteTrip,
+};
+
+const getTripBudget = async (req, res) => {
+    try {
+        const trip = await Trip.findOne({
+            _id: req.params.tripId,
+            user: req.user._id,
+        });
+
+        if (!trip) {
+            return res.status(404).json({
+                success: false,
+                message: "Trip not found",
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            budget: trip.budget,
+            budgetDetails: trip.budgetDetails,
+        });
+    } catch (error) {
+        console.error("Get budget error:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to load budget",
+        });
+    }
+};
+
+const addExpense = async (req, res) => {
+    try {
+        const { category, note, amount } = req.body;
+
+        if (!category || !amount || Number(amount) <= 0) {
+            return res.status(400).json({
+                success: false,
+                message: "Category and valid amount are required",
+            });
+        }
+
+        const trip = await Trip.findOne({
+            _id: req.params.tripId,
+            user: req.user._id,
+        });
+
+        if (!trip) {
+            return res.status(404).json({
+                success: false,
+                message: "Trip not found",
+            });
+        }
+
+        const categoryIndex =
+            trip.budgetDetails.categories.findIndex(
+                (cat) => cat.id === category
+            );
+
+        if (categoryIndex === -1) {
+            return res.status(404).json({
+                success: false,
+                message: "Budget category not found",
+            });
+        }
+
+        trip.budgetDetails.categories[categoryIndex].spent += Number(
+            amount
+        );
+
+        trip.budgetDetails.expenses.unshift({
+            category,
+            note: note || "",
+            amount: Number(amount),
+            createdAt: new Date(),
+        });
+
+        await trip.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Expense added successfully",
+            budgetDetails: trip.budgetDetails,
+        });
+    } catch (error) {
+        console.error("Add expense error:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to add expense",
+        });
+    }
+};
+
+const addBudgetCategory = async (req, res) => {
+    try {
+        const {
+            name,
+            allocated,
+            icon = "Tag",
+            color = "#3b82f6",
+        } = req.body;
+
+        if (!name || !allocated || Number(allocated) <= 0) {
+            return res.status(400).json({
+                success: false,
+                message: "Category name and allocation are required",
+            });
+        }
+
+        const trip = await Trip.findOne({
+            _id: req.params.tripId,
+            user: req.user._id,
+        });
+
+        if (!trip) {
+            return res.status(404).json({
+                success: false,
+                message: "Trip not found",
+            });
+        }
+
+        const id =
+            name
+                .trim()
+                .toLowerCase()
+                .replace(/\s+/g, "-") +
+            "-" +
+            Date.now();
+
+        trip.budgetDetails.categories.push({
+            id,
+            name: name.trim(),
+            icon,
+            allocated: Number(allocated),
+            spent: 0,
+            color,
+        });
+
+        await trip.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Category added successfully",
+            budgetDetails: trip.budgetDetails,
+        });
+    } catch (error) {
+        console.error("Add category error:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to add category",
+        });
+    }
 };

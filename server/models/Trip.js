@@ -119,6 +119,70 @@ const tripSchema = new mongoose.Schema(
             type: Boolean,
             default: false,
         },
+        budgetDetails: {
+    categories: [
+        {
+            id: {
+                type: String,
+                required: true,
+            },
+
+            name: {
+                type: String,
+                required: true,
+                trim: true,
+            },
+
+            icon: {
+                type: String,
+                default: "Tag",
+            },
+
+            allocated: {
+                type: Number,
+                default: 0,
+                min: 0,
+            },
+
+            spent: {
+                type: Number,
+                default: 0,
+                min: 0,
+            },
+
+            color: {
+                type: String,
+                default: "#3b82f6",
+            },
+        },
+    ],
+
+    expenses: [
+        {
+            category: {
+                type: String,
+                required: true,
+            },
+
+            note: {
+                type: String,
+                trim: true,
+                default: "",
+            },
+
+            amount: {
+                type: Number,
+                required: true,
+                min: 0,
+            },
+
+            createdAt: {
+                type: Date,
+                default: Date.now,
+            },
+        },
+    ],
+},
     },
     {
         timestamps: true,
