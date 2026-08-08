@@ -1,8 +1,8 @@
 // Navbar Constants
 export const NAV_LINKS = [
-    { name: "Home", href: "#" },
+    { name: "Home", href: "/dashboard" },
     { name: "My Trips", href: "#" },
-    { name: "Budget", href: "#" },
+    { name: "Budget", href: "/budget" },
     { name: "Explore", href: "#" }
 ];
 

@@ -1,9 +1,11 @@
 import "../css/LandingPage.css";
 import { Sun, Moon, ArrowRight } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
+import { useNavigate } from "react-router-dom";
 
 function LandingPage() {
     const { theme, toggleTheme } = useTheme();
+    const navigate = useNavigate();
 
     return (
         <main className="hero-background flex flex-col items-center min-h-screen">
@@ -247,6 +249,7 @@ function LandingPage() {
                         style={{
                             padding: "0 28px",
                         }}
+                        onClick={() => navigate('/register')}
                     >
                         START YOUR ADVENTURE
                     </button>
@@ -285,6 +288,7 @@ function LandingPage() {
                         style={{
                             padding: "0 24px",
                         }}
+                        onClick={() => navigate('/login')}
                     >
                         CONTINUE YOUR JOURNEY
 
