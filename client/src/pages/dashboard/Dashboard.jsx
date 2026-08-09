@@ -1964,18 +1964,19 @@ function Dashboard() {
                             />
 
                             <ActionCard
-                                icon={
-                                    <Sun
-                                        size={27}
-                                    />
-                                }
+                                icon={<Sun size={27} />}
                                 title="Weather Forecast"
                                 description="Check conditions and travel advisories."
-                                onClick={() =>
-                                    navigate(
-                                        "/weather"
-                                    )
-                                }
+                                onClick={() => {
+                                    console.log("ACTIVE TRIP:", activeTrip);
+
+                                    navigate("/weather", {
+                                        state: {
+                                            trip: activeTrip,
+                                            destination: activeTrip?.destination,
+                                        },
+                                    });
+                                }}
                             />
                         </div>
                     </section>
