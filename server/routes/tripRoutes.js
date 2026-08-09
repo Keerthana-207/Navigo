@@ -6,12 +6,18 @@ const {
     getTripById,
     updateTrip,
     deleteTrip,
+    getTripBudget,
+    addExpense,
+    addBudgetCategory,
 } = require("../controllers/tripController");
 
 const authMiddleware = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
+// ============================================
+// TRIP ROUTES
+// ============================================
 
 // Create trip
 router.post(
@@ -20,14 +26,12 @@ router.post(
     createTrip
 );
 
-
 // Get all logged-in user's trips
 router.get(
     "/",
     authMiddleware,
     getMyTrips
 );
-
 
 // Get single trip
 router.get(
@@ -36,14 +40,12 @@ router.get(
     getTripById
 );
 
-
 // Update trip
 router.put(
     "/:id",
     authMiddleware,
     updateTrip
 );
-
 
 // Delete trip
 router.delete(
@@ -52,5 +54,29 @@ router.delete(
     deleteTrip
 );
 
+// ============================================
+// BUDGET ROUTES
+// ============================================
+
+// Get trip budget
+router.get(
+    "/:id/budget",
+    authMiddleware,
+    getTripBudget
+);
+
+// Add budget expense
+router.post(
+    "/:id/budget/expenses",
+    authMiddleware,
+    addExpense
+);
+
+// Add budget category
+router.post(
+    "/:id/budget/categories",
+    authMiddleware,
+    addBudgetCategory
+);
 
 module.exports = router;

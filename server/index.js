@@ -10,7 +10,6 @@ const authRoutes = require("./routes/authRoutes.js");
 const tripRoutes = require("./routes/tripRoutes.js");
 const placeRoutes = require("./routes/placeRoutes.js");
 const itineraryRoutes = require("./routes/itineraryRoutes.js");
-const budgetRoutes = require("./routes/budgetRoutes");
 
 dotenv.config();
 
@@ -93,11 +92,6 @@ app.use(
     "/api/trips",
     tripRoutes
 );
-
-app.use(
-    "/api/trips",
-    budgetRoutes
-)
 
 app.use(
     "/api",
