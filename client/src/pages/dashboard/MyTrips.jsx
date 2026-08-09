@@ -904,8 +904,7 @@ function TripCard({ trip, onDelete }) {
                     <button
                         type="button"
                         onClick={() =>
-                            (window.location.href =
-                                `/itinerary/${trip._id}`)
+                            navigate(`/itinerary/${trip._id}`)
                         }
                         className="
                             flex
