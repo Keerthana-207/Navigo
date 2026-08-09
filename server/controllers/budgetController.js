@@ -118,34 +118,30 @@ const addBudgetCategory = async (req, res) => {
 
 const addExpense = async (req, res) => {
     try {
-        const { tripId } = req.params;
+        const { id } = req.params;
+        const { category, note, amount } = req.body;
 
-        const {
-            category,
-            note,
-            amount,
-        } = req.body;
-
-        if (!category) {
+        if (!category || amount === undefined) {
             return res.status(400).json({
                 success: false,
-                message: "Expense category is required.",
+                message: "Category and amount are required.",
             });
         }
 
+        const expenseAmount = Number(amount);
+
         if (
-            amount === undefined ||
-            amount === null ||
-            Number(amount) < 0
+            Number.isNaN(expenseAmount) ||
+            expenseAmount < 0
         ) {
             return res.status(400).json({
                 success: false,
-                message: "Valid expense amount is required.",
+                message: "Invalid expense amount.",
             });
         }
 
         const trip = await Trip.findOne({
-            _id: tripId,
+            _id: id,
             user: req.user.id,
         });
 
@@ -156,6 +152,7 @@ const addExpense = async (req, res) => {
             });
         }
 
+        // Make sure budgetDetails exists
         if (!trip.budgetDetails) {
             trip.budgetDetails = {
                 categories: [],
@@ -167,45 +164,42 @@ const addExpense = async (req, res) => {
             trip.budgetDetails.expenses = [];
         }
 
-        const expense = {
+        if (!trip.budgetDetails.categories) {
+            trip.budgetDetails.categories = [];
+        }
+
+        // Add expense to budgetDetails.expenses
+        trip.budgetDetails.expenses.push({
             category: category.trim(),
             note: note?.trim() || "",
-            amount: Number(amount),
+            amount: expenseAmount,
             createdAt: new Date(),
-        };
+        });
 
-        trip.budgetDetails.expenses.push(expense);
-
-        /*
-         * Update the spent amount of the matching
-         * budget category.
-         */
-        const matchingCategory =
+        // Find matching budget category
+        const budgetCategory =
             trip.budgetDetails.categories.find(
                 (item) =>
-                    item.name.toLowerCase() ===
+                    item.name.trim().toLowerCase() ===
                     category.trim().toLowerCase()
             );
 
-        if (matchingCategory) {
-            matchingCategory.spent =
-                Number(matchingCategory.spent || 0) +
-                Number(amount);
+        // Update category spent amount
+        if (budgetCategory) {
+            budgetCategory.spent =
+                Number(budgetCategory.spent || 0) +
+                expenseAmount;
         }
 
         await trip.save();
 
-        return res.status(201).json({
+        return res.status(200).json({
             success: true,
             message: "Expense added successfully.",
-            expense,
             budgetDetails: trip.budgetDetails,
         });
     } catch (error) {
-        console.error(
-            "Add Expense Error:",
-            error
-        );
+        console.error("Add expense error:", error);
 
         return res.status(500).json({
             success: false,
@@ -214,9 +208,9 @@ const addExpense = async (req, res) => {
     }
 };
 
-
 module.exports = {
     getTripBudget,
     addBudgetCategory,
     addExpense,
+    
 };

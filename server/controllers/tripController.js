@@ -348,15 +348,6 @@ const deleteTrip = async (req, res) => {
     }
 };
 
-
-module.exports = {
-    createTrip,
-    getMyTrips,
-    getTripById,
-    updateTrip,
-    deleteTrip,
-};
-
 const getTripBudget = async (req, res) => {
     try {
         const trip = await Trip.findOne({
@@ -509,4 +500,15 @@ const addBudgetCategory = async (req, res) => {
             message: "Failed to add category",
         });
     }
+};
+
+module.exports = {
+    createTrip,
+    getMyTrips,
+    getTripById,
+    updateTrip,
+    deleteTrip,
+    addBudgetCategory,
+    addExpense,
+    getTripBudget
 };
