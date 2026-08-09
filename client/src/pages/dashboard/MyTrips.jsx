@@ -407,6 +407,7 @@ function MyTrips() {
                                         key={trip._id}
                                         trip={trip}
                                         onDelete={handleDeleteTrip}
+                                        navigate={navigate}
                                     />
                                 ))}
 
@@ -571,7 +572,7 @@ function StatCard({ icon: Icon, label, value }) {
 /* Trip Card */
 /* -------------------------------------------------- */
 
-function TripCard({ trip, onDelete }) {
+function TripCard({ trip, onDelete, navigate }) {
     const status = trip.status || "upcoming";
     const isCompleted = status === "completed";
 
